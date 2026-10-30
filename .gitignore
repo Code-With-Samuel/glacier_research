@@ -23,3 +23,4 @@ Thumbs.db
 # Dataset folders
 datasets/
 datasets_to_csv/
+processed_data
