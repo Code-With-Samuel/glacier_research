@@ -6,3 +6,8 @@ ipykernel
 geopandas
 xarray
 netCDF4
+pathlib
+folium
+branca
+ipython
+scikit-learn

@@ -1,0 +1,102 @@
+A. Data References and links:
+
+1. https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land?tab=overview
+
+ERA5-Land is a reanalysis dataset providing a consistent view of the evolution of land variables over several decades at an enhanced resolution compared to ERA5. ERA5-Land has been produced by replaying the land component of the ECMWF ERA5 climate reanalysis. Reanalysis combines model data with observations from across the world into a globally complete and consistent dataset using the laws of physics. Reanalysis produces data that goes several decades back in time, providing an accurate description of the climate of the past.
+
+ERA5-Land uses as input to control the simulated land fields ERA5 atmospheric variables, such as air temperature and air humidity. This is called the atmospheric forcing. Without the constraint of the atmospheric forcing, the model-based estimates can rapidly deviate from reality. Therefore, while observations are not directly used in the production of ERA5-Land, they have an indirect influence through the atmospheric forcing used to run the simulation. In addition, the input air temperature, air humidity and pressure used to run ERA5-Land are corrected to account for the altitude difference between the grid of the forcing and the higher resolution grid of ERA5-Land. This correction is called 'lapse rate correction'.
+
+The ERA5-Land dataset, as any other simulation, provides estimates which have some degree of uncertainty. Numerical models can only provide a more or less accurate representation of the real physical processes governing different components of the Earth System. In general, the uncertainty of model estimates grows as we go back in time, because the number of observations available to create a good quality atmospheric forcing is lower. ERA5-land parameter fields can currently be used in combination with the uncertainty of the equivalent ERA5 fields.
+
+The temporal and spatial resolutions of ERA5-Land makes this dataset very useful for all kind of land surface applications such as flood or drought forecasting. The temporal and spatial resolution of this dataset, the period covered in time, as well as the fixed grid used for the data distribution at any period enables decisions makers, businesses and individuals to access and use more accurate information on land states.
+
+Citation and attribution
+
+Guidelines
+In addition to the requirements of the applicable license(s), users must:
+
+cite the CDS catalogue entry;
+
+provide clear and visible attribution to the Copernicus programme and attribute each data product used;
+
+Citing the CDS catalogue entry
+Copernicus Climate Change Service (2019): ERA5-Land hourly data from 1950 to present. Copernicus Climate Change Service (C3S) Climate Data Store (CDS). DOI: 10.24381/cds.e2161bac (Accessed on DD-MMM-YYYY)
+
+Attribution
+Copernicus programme:
+
+Generated using or contains modified Copernicus Climate Change Service information <2019>. Neither the European Commission nor ECMWF is responsible for any use that may be made of the Copernicus information or data it contains.
+
+Citing the data:
+
+Muñoz Sabater, J. (2019): ERA5-Land hourly data from 1950 to present. Copernicus Climate Change Service (C3S) Climate Data Store (CDS). DOI: 10.24381/cds.e2161bac (Accessed on DD-MMM-YYYY)
+
+
+2. https://cds.climate.copernicus.eu/datasets/derived-gridded-glacier-mass-change?tab=overview
+
+The dataset provides global annual glacier mass changes distributed on a global regular grid at 0.5° resolution (latitude, longitude) based on the Fluctuations of Glaciers (FoG) database of the World Glacier Monitoring Service (WGMS). Glaciers play a fundamental role in the Earth’s water cycles. They are one of the most important freshwater resources for societies and ecosystems and the recent increase in ice melt contributes directly to the rise of ocean levels. Due to this they have been declared as an Essential Climate Variable (ECV) by GCOS, the Global Climate Observing System. Within the Copernicus Services, the global gridded annual glacier mass change dataset provides information on changing glacier resources by combining glacier change observations from the Fluctuations of Glaciers (FoG) database that is brokered from World Glacier Monitoring Service (WGMS).
+
+Inspired by previous methodological frameworks, a new approach was developed to combine the glacier mass balance and elevation change observations, providing a new and unique product of annual glacier mass change and related uncertainties for every hydrological year since 1975/76 distributed on a 0.5° global regular grid. The present dataset bridges the gap regarding the spatio-temporal coverage of glacier change observations, providing for the first time in the Copernicus Climate Change Service (C3S) Climate Data Store (CDS) an annually resolved glacier mass change product using the glacier elevation change sample as calibration. This goal has become feasible at the global scale thanks to a new globally near-complete (96% of the world glaciers) dataset of glacier elevation change observations ingested by the FoG database.
+
+To develop the distributed glacier change product, the use of glacier outlines from the C3S Glacier Area product version 2 are used. A glacier is considered to belong to a grid-point when its geometric centroid lies within the grid point. The centroid is obtained from the glacier outlines from the C3S Glacier Area product version 2. The glacier changes in Gt correspond to the total mass of water lost/gained over the glacier surface during a given year. Note that to propagate to mm/cm/m of water column on the grid cell, the grid cell area needs to be considered. Note that hydrological year vary on the Southern Hemisphere (October to September next year) and Northern Hemispheres (April to March next year). The annual distributed glacier change dataset cannot resolve for this seasonal difference and is important for the user to account for them when using the datasets. This issue can only be resolved with a monthly distributed glacier change product.
+
+This dataset has been produced by researchers at the WGMS on behalf of Copernicus Climate Change Service.
+
+Citation and attribution
+
+Guidelines
+In addition to the terms and conditions stated in the license(s), users must:
+
+cite the CDS catalogue entry;
+provide clear and visible attribution to the Copernicus programme and attribute each data product used;
+ 
+
+Citing the CDS catalogue entry
+Copernicus Climate Change Service (C3S) (2023): Glacier mass change global gridded data from 1976 to present derived from the Fluctuations of Glaciers Database. Copernicus Climate Change Service (C3S) Climate Data Store (CDS). DOI: 10.24381/cds.ba597449 (Accessed on DD-MMM-YYYY)
+
+
+Attribution
+Copernicus programme:
+
+[Generated using/Contains modified] Copernicus Climate Change Service information [year]. Neither the European Commission nor ECMWF is responsible for any use that may be made of the Copernicus information or data it contains.
+
+Citing the data:
+
+Dussaillant, I., Bannwart, J., Paul, F., Zemp, M. (2024): Glacier mass change global gridded data from 1976 to present derived from the Fluctuations of Glaciers Database. World Glacier Monitoring Service. DOI: 10.24381/cds.ba597449 (Accessed on DD-MMM-YYYY)
+
+
+3. https://forum.ecmwf.int/t/issue-affecting-era5-land-monthly-averaged-reanalysis-for-the-period-september-2022-to-february-2024/2370
+4. https://confluence.ecmwf.int/pages/viewpage.action?pageId=505384848
+5. https://www.ecmwf.int/en/forecasts/datasets/era5-land-monthly-averaged-data-1950-present
+
+
+B. Mandatory Base Papers to be included
+
+1. S. Gurung, B. Devkota, R. Adhikari, R. Adhikari, "Predicting Mass Balance of Glaciers in the Central Himalaya Region using Machine Learning", Journal of Engineering and Sciences 4(2): 171–186 (Nov 2025), doi:10.3126/jes2.v4i2.82124
+2. N. Khadka, X. Chen, S. Sharma, B. Shrestha, "Climate change and its impacts on glaciers and glacial lakes in Nepal Himalayas", Regional Environmental Change 23:143 (2023), doi:10.1007/s10113-023-02142-y
+3. R. Anilkumar, R. Bharti, D. Chutia, S. P. Aggarwal, "Modelling point mass balance for the glaciers of the Central European Alps using machine learning techniques", The Cryosphere 17:2811–2828 (2023), doi:10.5194/tc-17-2811-2023
+
+
+C. Some helpful citations:
+
+1.  mass balance indicates the 'health' of a glacier: glaciers that lose more 
+mass than they gain experience a negative mass balance and consequently recede, while those 
+that gain more mass than they lose have a positive mass balance and thus advance (Davies, 
+2020).
+2. the well-studied Yala Glacier in the Langtang region of Nepal has an 
+average mass balance of −0.80 ± 0.28 m w.e. yr-1 from 2011 to 2017 and has cumulatively lost 
+approximately −12.9 m w.e. since 2000, with summer ablation being the most dominant 
+process (Stumm et al., 2021).
+3. Glacier mass balance is a vital indicator because it responds 
+instantly to atmospheric forcing and links changes in the cryosphere to climate monitoring 
+(Stumm et al., 2021).
+4. Conventional mass balance measurements rely on in-situ staking methods (Davies, 2020; 
+Glacier Mass Balance - an Overview | ScienceDirect Topics, n.d.; Ren et al., 2024), geodetic 
+DEM (Digital Elevation Model) differencing (Stumm et al., 2021; Zemp et al., 2009), and 
+physical models, such as energy balance (Che et al., 2019). However, these approaches are often constrained by their spatial coverage, data requirements, and computational complexity (Bolibar et al., 2020; Ren et al., 2024).  
+
+
+
+
+
+
