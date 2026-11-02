@@ -1,0 +1,32 @@
+key,year,type,doi_or_url,verified_this_session,claims_supported_in_paper
+era5landpaper,2021,journal,10.5194/essd-13-4349-2021,from user bib (not re-fetched),ERA5-Land description and resolution
+hugonnet2021,2021,journal,10.1038/s41586-021-03436-z,from user bib (not re-fetched),accelerated global loss
+stumm2021,2021,journal,10.5194/essd-13-3791-2021,from user bib (not re-fetched),Yala/Rikha Samba balances
+miles2021,2021,journal,10.1038/s41467-021-23073-4,from user bib (not re-fetched),HMA glacier health
+bhattacharya2021,2021,journal,10.1038/s41467-021-24180-y,YES (authors/title/volume/DOI),HMA multi-temporal loss; summer temperature
+barandun2021,2021,journal,10.1029/2020GL092084,YES (title/DOI/date; author list left as 'and others'),Tien Shan/Pamir spatial clusters
+mehta2021,2021,journal,10.1007/s10113-021-01766-2,YES - AUTHORS CORRECTED (Mehta; Kumar; Garg; Shukla),Pensilungpa Glacier local study
+zhang2021,2021,journal,10.3390/rs13245117,YES - authors completed,Tarim glacier area/snow cover
+khadka2023,2023,journal (BASE),10.1007/s10113-023-02142-y,from user bib/blueprint,Nepal synthesis; -0.3 to -0.8 m w.e./yr
+anilkumar2023,2023,journal (BASE),10.5194/tc-17-2811-2023,from user bib/blueprint,Alpine ML comparison
+rounce2023,2023,journal,10.1126/science.abo1324,from user bib (not re-fetched),projections
+ren2024,2024,journal,10.3390/rs16060956,YES (author list completed),ML HMA maritime vs continental
+gurung2025,2025,journal (BASE),10.3126/jes2.v4i2.82124,YES (NepJOL page; full author names),Central Himalaya ML
+peng2025,2025,journal,10.1029/2024JD043191,YES (authors/issue/article no.),Tien Shan/Pamir XGBoost reconstruction
+xu2025,2025,journal,10.1007/s11629-024-9047-4,YES (vol 22(2) 466-488),Tanggula explainable ML
+vanmeer2025,2025,journal,10.5194/tc-19-805-2025,YES - authors corrected,miniML-MB
+sjursen2025,2025,journal,10.5194/tc-19-5801-2025,YES - issue/pages/authors completed,MBM XGBoost unmonitored glaciers
+meyer2021,2021,journal,10.1111/2041-210X.13650,YES (new),area of applicability
+wadoux2021,2021,journal,10.1016/j.ecolmodel.2021.109692,YES (new),critique of spatial CV for map accuracy
+wgmsgrid,2023,dataset,10.24381/cds.ba597449,from user reference file,target product description
+dussaillant2024,2024,dataset,10.24381/cds.ba597449,from user reference file,target product citation
+era5land,2019,dataset,10.24381/cds.e2161bac,from user reference file,ERA5-Land catalogue entry
+ecmwfissue,2024,notice,forum.ecmwf.int/t/.../2370,YES (page fetched),Sep 2022-Feb 2024 issue
+roberts2017,2017,journal,10.1111/ecog.02881,classic (not re-fetched),grouped CV
+pedregosa2011,2011,journal,JMLR 12:2825,classic (not re-fetched),scikit-learn
+cortes1995,1995,journal,10.1007/BF00994018,classic (not re-fetched),SVM
+breiman2001,2001,journal,10.1023/A:1010933404324,classic (not re-fetched),RF
+friedman2001,2001,journal,10.1214/aos/1013203451,classic (not re-fetched),GB
+sokolova2009,2009,journal,10.1016/j.ipm.2009.03.002,classic (not re-fetched),metrics
+lloyd1982,1982,journal,10.1109/TIT.1982.1056489,ADDED FROM KNOWLEDGE - please spot-check,k-means
+chang2011,2011,journal,10.1145/1961189.1961199,ADDED FROM KNOWLEDGE - please spot-check,LIBSVM/SMO complexity

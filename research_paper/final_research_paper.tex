@@ -1,0 +1,676 @@
+\documentclass[conference]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{balance}
+\def\UrlBreaks{\do\/\do-\do\_}
+\graphicspath{{figures/}}
+\newcommand{\mwe}{m\,w.e.}
+
+\begin{document}
+
+\title{Spatially Grouped Classification of Glacier Mass-Change States across the Hindu Kush Himalaya: A Retrospective ERA5-Land Baseline}
+
+\author{Ayush Khanal\\
+Student ID: 260156, CUID: 17624354\\
+MSc. Data Science and Computational Intelligence\\
+Softwarica College of IT and E-commerce (Coventry University)\\
+\texttt{260156@softwarica.edu.np}}
+
+\maketitle
+
+\begin{abstract}
+Annual glacier mass change across the Hindu Kush Himalaya (HKH) is heterogeneous in space and time, yet most machine-learning (ML) studies of glacier mass balance estimate a continuous value. This paper asks how well four common classifier families separate mass gain, mass loss and near balance on a prepared HKH grid, and it does so within a planning blueprint distilled from three base studies. The modelling table holds 23,698 grid-cell--hydrological-year records (697 cells of $0.5^\circ$, April--March years 1991--2024) with 17 predictors: glacier area, year and 15 ERA5-Land variables. Classes follow fixed thresholds of $\pm0.1$~\mwe, giving 64.75\% loss, 21.00\% gain and 14.25\% near balance. Logistic Regression, an RBF Support Vector Machine, Random Forest and Gradient Boosting were compared with five-fold StratifiedGroupKFold validation on 25 K-means location clusters. Gradient Boosting led (mean fold macro-F1 0.5959; pooled out-of-fold macro-F1 0.6037, balanced accuracy 0.6297, macro ROC-AUC 0.8373), but near balance remained weak (F1 0.35, precision 0.27). The study is retrospective, reuses the same folds for tuning and reporting, and applies label thresholds smaller than the median reported uncertainty. A diagnostic also shows implausible temperature and wind anomalies in the two years that contain replaced ERA5-Land months. The results are therefore a documented baseline, not an independent generalization estimate.
+\end{abstract}
+
+\begin{IEEEkeywords}
+glacier mass change, Hindu Kush Himalaya, ERA5-Land, multi-class classification, spatial cross-validation, class imbalance, computational complexity
+\end{IEEEkeywords}
+
+\section{Introduction}
+Glaciers store frozen freshwater and respond to atmospheric forcing, which makes their mass change a key climate indicator. Mass balance is the net gain or loss of glacier mass over a stated period, usually expressed in metres of water equivalent (\mwe) when normalised by glacierised area. Persistent negative balance is associated with retreat, shrinking meltwater buffers and growing glacial-lake hazards, and the Hindu Kush Himalaya is among the regions where these consequences matter most for downstream communities. Global geodetic syntheses document accelerated loss in the early twenty-first century \cite{hugonnet2021}, regional assessments describe the health and variability of High Mountain Asia \cite{miles2021,bhattacharya2021,barandun2021}, and projections show that every increment of warming changes the glacier trajectory \cite{rounce2023}. For Nepal, a recent synthesis connects climate trends to glacier and glacial-lake change \cite{khadka2023}, while long in-situ records such as those from Yala and Rikha Samba glaciers provide rare ground truth \cite{stumm2021}.
+
+Observation is the bottleneck. Conventional measurement relies on stake networks, geodetic differencing of elevation models and physically based energy-balance models, each of which is limited by spatial coverage, data requirements or computational and calibration burden. Gridded products that merge glaciological and geodetic evidence into annual mass-change fields \cite{wgmsgrid,dussaillant2024} offer a spatially complete target, and climate reanalyses such as ERA5-Land \cite{era5landpaper,era5land} offer spatially complete predictors. Their combination invites a data-driven question that is different from the one most previous ML work has asked. Instead of estimating a number for each glacier or stake, can a model decide whether a grid cell is gaining mass, losing mass or sitting near balance in a given hydrological year, and can that decision survive validation on geographically separate cells?
+
+Three practical considerations motivate the classification framing. First, many monitoring and screening decisions are categorical: whether a basin is losing mass, whether a year is anomalous, whether a signal is distinguishable from zero. Second, a category is less sensitive than a regression residual to a few extreme cells, although it hides within-class magnitude. Third, classification forces an explicit rule for what counts as balance, and that rule exposes the interaction between label thresholds and product uncertainty. This last point proved to be central in the present study.
+
+The paper has a single principal objective: \emph{to build and evaluate a reproducible ML baseline that classifies annual glacier mass-change state for 697 cells across the HKH from same-year ERA5-Land and glacier-area predictors, using spatially grouped validation, with explicit attention to class imbalance, label uncertainty and computational cost.} Supporting questions concern which of four classifier families performs best, where each fails, how sensitive the outcome is to the validation design, and what the data-quality checks imply for interpretation. These are not separate objectives; they serve the single baseline.
+
+The work is planned and reported through an experimental blueprint, a reusable worksheet that I completed for three base papers \cite{gurung2025,khadka2023,anilkumar2023}. The blueprint fixes the section structure, the evidence expected in each section, the comparison papers and the hedged way novelty may be claimed. Section~\ref{sec:blueprint} states which blueprint elements were carried out, which were adapted and which were not implemented. This candour is intentional: the blueprint contains stronger designs, including uncertainty-defined labels, a locked chronological test and nested validation, that the final experiment does not yet execute.
+
+The contributions are deliberately limited and empirical. (i) The paper documents a prepared HKH grid-cell classification task with its target construction, predictor set, aggregation rules and data-quality caveats. (ii) It compares linear, kernel and ensemble-tree classifiers under identical location-cluster folds, with class-wise results, ROC analysis and a theoretical and logged computational cost comparison. (iii) It reports two diagnostics that qualify every score: label ambiguity relative to reported uncertainty, and an apparent discontinuity in ERA5-Land temperature and wind after the replacement of months affected by the ECMWF monthly-average issue \cite{ecmwfissue}. No new algorithm is claimed, and the paper does not claim to be the first ML study of Himalayan glaciers.
+
+The remainder of the paper is organised as follows. Section~\ref{sec:related} reviews related work and states the gap. Section~\ref{sec:blueprint} maps the blueprint onto the study. Sections~\ref{sec:data} and \ref{sec:processing} describe the study area, data and processing. Sections~\ref{sec:problem}--\ref{sec:design} formalise the problem, the methods and the experimental design. Sections~\ref{sec:results}--\ref{sec:threats} present results, discussion and threats to validity, and Section~\ref{sec:conclusion} concludes.
+
+\section{Related Work and Research Gap}\label{sec:related}
+\subsection{Glacier change and regional evidence}
+Global and regional syntheses frame the problem. Hugonnet et al. derive glacier elevation change worldwide and report acceleration of loss in the early twenty-first century \cite{hugonnet2021}. For High Mountain Asia, Miles et al. discuss glacier health and sustainability, while Bhattacharya et al. combine multi-temporal satellite observations since the 1960s and attribute persistent increases in loss rates mainly to rising summer temperature \cite{miles2021,bhattacharya2021}. Barandun et al. show that mass-balance variability in Tien Shan and Pamir is spatially clustered into positive and negative groups \cite{barandun2021}, a reminder that regional means conceal opposite signals. Rounce et al. connect warming scenarios to glacier evolution and regional water resources \cite{rounce2023}. In Nepal, Khadka et al. synthesise climate impacts on glaciers and glacial lakes and compile reported mass-balance rates between roughly $-0.3$ and $-0.8$~\mwe{} per year \cite{khadka2023}, and Stumm et al. report 2000--2017 balances for Yala and Rikha Samba glaciers \cite{stumm2021}. Glacier-scale field studies, such as the Pensilungpa Glacier in Zanskar \cite{mehta2021}, and remote-sensing studies of glacier area and snow cover around the Tarim Basin \cite{zhang2021} add local context. These sources differ from the present data in spatial unit, observational basis and target definition, so they motivate rather than benchmark the task.
+
+\subsection{Machine learning for glacier mass balance}
+Anilkumar et al. compared random forest, gradient boosting, support vector and neural models against linear regression for point mass balance in the Central European Alps and found nonlinear learners clearly better than the linear baseline \cite{anilkumar2023}. Gurung et al. predicted glacier mass balance in the Central Himalaya with Ridge, Lasso, XGBoost and a multilayer perceptron, evaluated with glacier-grouped folds, and discussed radiation features and monsoon cloud cover \cite{gurung2025}. Ren et al. compared ML models for maritime and continental glaciers in High Mountain Asia using monthly ERA5-Land predictors and a geodetic target \cite{ren2024}. Peng et al. reconstructed annual glacier-wide mass balance in Tien Shan and Pamir with ensemble ML, of which XGBoost performed best \cite{peng2025}. Xu et al. combined linear models, ensemble learning and OGGM to study drivers on the Tanggula Mountains \cite{xu2025}. Two recent studies address small or sparse data directly: van der Meer et al. propose a minimal ML model for very small point-balance datasets \cite{vanmeer2025}, and Sjursen et al. use XGBoost trained on sparse seasonal and annual measurements to predict mass balance on unmonitored glaciers \cite{sjursen2025}.
+
+These studies establish that nonlinear learners can exploit reanalysis predictors, that tree ensembles are strong on medium-sized tabular data, and that transfer to unseen glaciers is the hard test. They also reveal a methodological split. Studies with explicit glacier-level or grouped validation report more cautious scores, whereas pooled random splits can overstate skill when related observations appear on both sides of the split. The validation literature outside glaciology reaches the same conclusion for structured data \cite{roberts2017,meyer2021}, but it also contains a dissent: Wadoux et al. argue that spatial cross-validation has no firm theoretical basis for estimating \emph{map accuracy} and that design-based probability sampling is the rigorous alternative \cite{wadoux2021}. The present use is narrower. Grouped folds here support a \emph{relative comparison} of classifiers and a check against repeated-location leakage; they are not offered as unbiased map-accuracy estimates.
+
+\subsection{Comparison with the three base papers}
+Table~\ref{tab:gap} compares the base studies with this work. All three treat mass balance as a numerical quantity or describe it narratively; none, as far as the blueprint review shows, defines a three-class target. The review behind this statement was limited and not systematic, so it supports a description of what the base papers do, not a claim that classification has never been attempted.
+
+\begin{table*}[t]
+\caption{Research-gap comparison between the three mandatory base papers and the present study.}
+\label{tab:gap}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{0.14\textwidth}p{0.10\textwidth}p{0.16\textwidth}p{0.14\textwidth}p{0.20\textwidth}p{0.16\textwidth}}
+\toprule
+Previous study & Region & Data & Method & Main limitation or gap & Treatment here\\
+\midrule
+Gurung et al. 2025 \cite{gurung2025} & Central Himalaya (HMA regions 14--15) & ERA5-Land, topography, geodetic target 2000--2019 & Ridge, Lasso, XGBoost, MLP; glacier-grouped folds & Regression target; neighbouring glaciers can still share climate; radiation signal weak; target period fixed & Classification target; location-cluster folds; 1991--2024 annual panel\\
+Khadka et al. 2023 \cite{khadka2023} & Nepal & Literature, ICIMOD inventories & Narrative review with own inventory analysis & No predictive model, no uncertainty propagation; few high-elevation stations & Quantitative baseline; reported-uncertainty diagnostic\\
+Anilkumar et al. 2023 \cite{anilkumar2023} & Central Alps & ERA5-Land monthly, WGMS point data & RF, GBR, SVM, ANN vs linear; random 70/30 split & Point regression; random split with repeated sites; temperate Alps & Grid cells across HKH; same four-family design; grouped folds\\
+This study & HKH, 697 cells & C3S/WGMS gridded target, ERA5-Land, glacier area & LR, SVM-RBF, RF, GB; 5-fold SGKF, 25 clusters & Retrospective; same-fold tuning; fixed thresholds; no nested CV or locked test & Disclosed and diagnosed (Sections~\ref{sec:discussion}--\ref{sec:threats})\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{The research gap}
+The gap is narrow and stated as scope, data and design, not as absence of prior work. What previous research has established is that nonlinear learners can exploit ERA5-Land predictors for mass balance and that validation design matters. What remains insufficiently documented is a transparent, reproducible comparison of standard classifier families on the \emph{gridded annual product} over the \emph{whole HKH footprint}, with class-wise results, explicit label-uncertainty diagnostics and a stated computational cost. This study contributes such a baseline and the diagnostics that qualify it. It does not claim novelty from using any particular algorithm, nor that classification, spatial grouping or the HKH scope is new in itself.
+
+\section{Blueprint-Guided Study Design}\label{sec:blueprint}
+The experimental blueprint is a structured worksheet that was completed once for each of the three base papers. For every section of a typical empirical paper it records the recommended length, the elements expected, whether each base paper contains the element, and how the element will be used in this project. The completed worksheets fix the section order used here: introduction with gap and aim, literature review, context, methodology, results, discussion, limitations, conclusion and future work.
+
+Four design decisions flow directly from the blueprint. First, from Anilkumar et al. it takes the principle of a baseline plus diverse model classes: Logistic Regression is the linear baseline, Random Forest the bagged-tree ensemble, a kernel Support Vector Machine the margin learner, and Gradient Boosting the boosted-tree learner \cite{anilkumar2023}. Second, from Gurung et al. it takes glacier-aware grouping, because their critique of pooled random splits supports a leakage-aware design, and it adds the observation that neighbouring cells share climate and probably class, which argues for grouping by spatial cluster rather than by cell \cite{gurung2025,roberts2017}. Third, from Khadka et al. it takes a context-first structure and a habit of treating each limitation of a source as a design question; for example, the lack of high-elevation observations means that ERA5-Land is not checked against high-altitude stations here, and this is said explicitly \cite{khadka2023}. Fourth, from all three it takes the hedged language for novelty.
+
+\begin{table*}[t]
+\caption{Blueprint fidelity: planned element versus what this paper actually did.}
+\label{tab:fidelity}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{0.20\textwidth}p{0.35\textwidth}p{0.13\textwidth}p{0.25\textwidth}}
+\toprule
+Blueprint element & What was planned & Status & What this paper did\\
+\midrule
+Hedged gap statement & No ``first study'' claim; gap from scope, data, design & Implemented & Section~\ref{sec:related}\\\\
+Linear baseline + tree ensemble + kernel learner & LR, RF and SVM as permitted set; boosting only as reserve & Adapted & Gradient Boosting added and evaluated alongside the three\\\\
+Study area & Nepal glacier cells (about 62 cells, 34 years) & Adapted & 697 HKH cells; the prepared table supersedes the Nepal-only plan\\
+Leakage-aware validation & Stratified-group $k$-fold on spatial blocks & Implemented & 5-fold StratifiedGroupKFold on 25 K-means clusters\\
+Preprocessing inside folds & Learned steps in a pipeline & Implemented & Scaling inside pipelines; fold-specific sample weights\\
+Primary metric & Macro-F1 with balanced accuracy, per-class recall, confusion matrix & Implemented & All reported, plus ROC-AUC\\
+Uncertainty-aware three-class target & Class boundary tied to each row's own uncertainty & Not implemented & Fixed $\pm0.1$~\mwe{}; diagnosed only (Section~\ref{sec:threats})\\\\
+Chronological split & Train 1991--2014, validate 2015--2019, locked test 2020--2024 & Not implemented & Replaced by spatial grouping; no forecasting claim\\
+Nested or locked evaluation & Tune inside inner folds, report on outer or locked test & Not implemented & Tuning and reporting share folds\\\\
+Climate anomalies from training years only & Reference mean computed on training data & Not implemented & Raw annual aggregates used\\\\
+Coordinates with and without & Test coordinates as spatial identity & Adapted & Coordinates excluded from predictors by design\\
+Measured performance--cost comparison & Runtime, memory and file size over repeated runs & Adapted & Wall-clock from the search log and final fit time; no repeated or memory profiling\\
+Block-bootstrap intervals & Intervals on test metrics & Not implemented & Fold standard deviations only\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\section{Study Area and Data Sources}\label{sec:data}
+\subsection{Study area}
+The prepared target grid spans $27.25^\circ$--$39.25^\circ$\,N and $67.25^\circ$--$103.75^\circ$\,E and contains 697 cells of $0.5^\circ$, each present in all 34 hydrological years (Fig.~\ref{fig:map}). This footprint covers the Hindu Kush, Karakoram, the Himalayan arc, parts of the Tibetan Plateau margin, Tien Shan and eastern ranges. The shaded envelope in Fig.~\ref{fig:map} is a smoothed outline of the occupied cells. It is not an official regional boundary, and no polygon of the HKH was used in the analysis. The original file name contains ``nepal'' for historical reasons, but the coordinates clearly extend far beyond Nepal, so the study is HKH-wide in the sense of this footprint.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_study_area_map.pdf}
+\caption{Study area. (a) Mean specific mass change per $0.5^\circ$ target cell, 1991--2024. (b) Number of hydrological years (of 34) in which each cell is classed as mass loss. Cells are drawn as $0.5^\circ$ squares over Natural Earth country outlines; the green shaded envelope is a smoothed outline of the 697 occupied cells and is not an official HKH boundary.}
+\label{fig:map}
+\end{figure*}
+
+\subsection{Datasets}
+Table~\ref{tab:datasets} lists the datasets used. The target is the Copernicus Climate Change Service (C3S) global gridded annual glacier mass-change product derived from the World Glacier Monitoring Service (WGMS) Fluctuations of Glaciers database \cite{wgmsgrid,dussaillant2024}. It distributes annual mass change and its uncertainty on a $0.5^\circ$ global grid for every hydrological year since 1975/76, assigns a glacier to the cell that contains its centroid, and warns that the annual product cannot resolve the different Northern and Southern Hemisphere hydrological-year definitions. In the prepared table the specific value in \mwe{} equals the total mass change in gigatonnes divided by water density and the glacier area carried in the same record; I verified this relation on all 23,698 rows to within rounding of the stored three-decimal values. The glacier-area column is therefore the glacierised area associated with the cell, not the cell area.
+
+\begin{table*}[t]
+\caption{Datasets, roles and sources. Resolutions are those stated in the cited documentation or observed in the prepared files.}
+\label{tab:datasets}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{0.13\textwidth}p{0.11\textwidth}p{0.17\textwidth}p{0.10\textwidth}p{0.10\textwidth}p{0.12\textwidth}p{0.17\textwidth}}
+\toprule
+Dataset & Provider & Variables used & Spatial res. & Temporal res. & Period used & Role; access\\
+\midrule
+Global gridded annual glacier mass change & C3S; WGMS & Mass change (Gt, \mwe), glacier area (km$^2$), uncertainty & $0.5^\circ$ & Annual, hydrological year & 1991--2024 & Target and glacier area; DOI 10.24381/cds.ba597449 \cite{wgmsgrid}\\
+ERA5-Land & ECMWF / C3S & 15 land-surface variables (Table~\ref{tab:vars}) & $0.1^\circ$(inferred grid step) & Monthly means & Apr 1990 -- Mar 2024 & Predictors; DOI 10.24381/cds.e2161bac \cite{era5land,era5landpaper}\\
+ERA5-Land recovery product & ECMWF / C3S & 12 variables, Sep 2022--Feb 2024 & $0.1^\circ$ & Monthly, hour-of-day product & Sep 2022 -- Feb 2024 & Replacement for affected months \cite{ecmwfissue}\\\\
+Static glacier area & Inside target product & \texttt{glacier\_area\_km2} & $0.5^\circ$ & Per record & 1991--2024 & Predictor \cite{wgmsgrid}\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+ERA5-Land is a land-surface reanalysis produced by replaying the land component of the ECMWF ERA5 system with atmospheric forcing, including a lapse-rate correction for the altitude difference between forcing and land grids \cite{era5land,era5landpaper}. Observations influence it only indirectly through that forcing, and the data-set documentation cautions that uncertainty grows backward in time. The inferred $0.1^\circ$ spacing in the processing notebook agrees with the documented native resolution of about 9~km, which is coarse for steep glacierised terrain and is a limitation discussed later.
+
+Two inputs listed in an earlier plan are not used. Static grids of glacier mask and geopotential and the ICIMOD glacier inventories belong to the Nepal-oriented blueprint, and the final HKH table contains no elevation, aspect or debris-cover information. The only glacier descriptor is glacier area.
+
+\section{Data Processing and Feature Engineering}\label{sec:processing}
+\subsection{Hydrological-year convention}
+The target label $Y$ denotes the hydrological year from 1 April of $Y-1$ through 31 March of $Y$, a half-open interval $[\text{1 April } Y{-}1,\ \text{1 April } Y)$. The C3S documentation gives April to March as the Northern Hemisphere convention \cite{wgmsgrid}. The annual table stores a \texttt{time} stamp of 1 January of the label year, which is a label and not the start of the period. Every one of the 23,698 cell-year groups has all 12 distinct months, so no incomplete year occurs and none was imputed. Month $m$ and calendar year $c$ map to the label
+\begin{equation}
+Y(c,m)=c+\mathbb{1}[m\ge 4],
+\label{eq:hy}
+\end{equation}
+where $\mathbb{1}[\cdot]$ is the indicator function.
+
+\subsection{Spatial alignment of ERA5-Land with the target grid}
+Each $0.5^\circ$ target cell is matched to the $0.1^\circ$ ERA5-Land cells that overlap it by conservative area-weighted averaging. The weight of a source cell is proportional to $\Delta\lambda(\sin\varphi_N-\sin\varphi_S)$ for its overlap rectangle, which is the spherical area factor, and the common radius term cancels. A target cell is retained when at least 70\% of its area is covered; the minimum observed coverage was 0.7007, the mean 0.9888, and the median and upper quartile were 1.0. The lowest-coverage cells lie on the northern edge near $39.25^\circ$\,N. All 697 target cells passed, and the monthly regridded table has 284,376 rows, that is 408 months times 697 cells, with no duplicate keys and no missing month. The workflow therefore does not interpolate across target cells; it averages source cells that geometrically overlap each target cell. Coordinates in the table are the target-cell centres.
+
+\subsection{Predictors and aggregation rules}
+The 17 predictors are glacier area, hydrological year and 15 ERA5-Land variables (Table~\ref{tab:vars}). Coordinates, the continuous target, its uncertainty, the gigatonne columns and integration metadata are excluded. No feature selection and no dimensionality reduction were applied. Aggregation to the hydrological year is variable specific, because accumulated, instantaneous and state variables need different treatment. State variables and winds are day-weighted means of the monthly values. The monthly-mean-of-daily-mean (``moda'') product expresses accumulated variables as a per-day quantity, so water-flux variables are summed over months after multiplying by the days in each month, and radiation, given as daily accumulated energy, is converted to a mean flux. These are the rules implemented in the integration notebook and documented in its metadata table; the metadata audit still flags all 15 variables for review against the original NetCDF attributes, and I treat the rules as implemented but not independently certified.
+
+\begin{table*}[t]
+\caption{Predictors, physical meaning, source units and annual operation as implemented in the integration notebook. Values in the last column are table means over all 23,698 records.}
+\label{tab:vars}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llp{0.20\textwidth}p{0.18\textwidth}p{0.20\textwidth}r}
+\toprule
+Name & Group & Meaning & Source unit & Annual operation & Mean\\
+\midrule
+\texttt{glacier\_area\_km2} & Glacier & Associated glacierised area & km$^2$ & Carried from target & 114.08\\
+\texttt{hydrological\_year} & Time & Year label $Y$ & year & Label & --\\
+\texttt{t2m} & Ablation & 2-m air temperature & K & Day-weighted mean & 268.5\\
+\texttt{snowc} & Accumulation & Snow cover & fraction; exported scale 0--100 & Day-weighted mean & 41.7\\
+\texttt{sde} & Accumulation & Snow depth & m & Day-weighted mean & 1.24\\
+\texttt{sd} & Accumulation & Snow water equivalent depth & m w.e. & Day-weighted mean & 0.362\\
+\texttt{sf} & Accumulation & Snowfall & m w.e. per day & Sum of daily-mean accumulations & 0.366\\
+\texttt{smlt} & Ablation & Snowmelt & m w.e. per day & Sum of daily-mean accumulations & 0.330\\
+\texttt{ssr} & Energy & Net surface solar radiation & J\,m$^{-2}$ per day & Mean daily energy as flux & 138.2\\
+\texttt{str} & Energy & Net surface thermal radiation & J\,m$^{-2}$ per day & Mean daily energy as flux & $-$79.8\\
+\texttt{ro} & Water flux & Total runoff & m per day & Sum of daily-mean accumulations & 0.504\\
+\texttt{es} & Water flux & Snow evaporation & m w.e. per day & Sum of daily-mean accumulations & $-$0.035\\
+\texttt{sro} & Water flux & Surface runoff & m per day & Sum of daily-mean accumulations & 0.268\\
+\texttt{e} & Water flux & Total evaporation & m w.e. per day & Sum of daily-mean accumulations & $-$0.359\\
+\texttt{u10}, \texttt{v10} & Wind & 10-m wind components & m\,s$^{-1}$ & Day-weighted mean & 0.54, 0.38\\
+\texttt{tp} & Accumulation & Total precipitation & m per day & Sum of daily-mean accumulations & 0.874\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Several of these quantities link to the surface energy balance in the way that the blueprint's theoretical-framework element recommends. Temperature, snowmelt and net radiation relate to ablation; snowfall, precipitation, snow cover and snow depth relate to accumulation; runoff and evaporation describe associated water fluxes. The association motivates the predictor set but does not make the model a surface-energy-balance model. Predictor means are consistent with plausible magnitudes: an annual precipitation total of 0.874~m, mean net solar flux of 138~W\,m$^{-2}$ and negative net thermal flux are physically reasonable for the region, although unit certification remains open.
+
+\subsection{The September 2022--February 2024 ERA5-Land issue}\label{sec:issue}
+ECMWF identified in January 2024 an issue in the ERA5-Land \emph{monthly averaged reanalysis} for September 2022 to February 2024, global in area and affecting all accumulated variables \cite{ecmwfissue}. The incorrect values were not replaced on the Climate Data Store; users are instead directed to recover the same data from the monthly averaged reanalysis \emph{by hour of day} product at 00:00, and corrected data exist from March 2024 onward. Accumulated values that are wrong in a monthly mean cannot be used for annual water-flux or energy totals, so unverified use would silently corrupt the predictors of two hydrological years.
+
+The handling in this study is \emph{replacement}, not exclusion. The integration notebook joins a recovery table on year-month and source-grid coordinates for 12 variables (\texttt{t2m, sf, smlt, ssr, str, ro, es, sro, e, u10, v10, tp}) over the 18 affected months, with 828,072 regional source rows per variable, and its audit reports that all were replaced with no affected row left without a replacement and no missing value after the join. Three variables (\texttt{snowc}, \texttt{sde}, \texttt{sd}) stay with the original source because they are absent from the recovery table. Hydrological year 2023 contains seven replaced months (September 2022 to March 2023), year 2024 contains eleven (April 2023 to February 2024), and year 2022 contains none. Neither rows nor months were dropped, so the final modelling table keeps all 23,698 records.
+
+A successful join does not prove that the replacement values are scientifically equivalent. Two concerns remain. First, the recovery table is an hour-of-day product at 00:00, and its semantics for accumulated variables (the accumulation period it represents) were not independently verified. Second, three of the 12 replaced variables, \texttt{t2m}, \texttt{u10} and \texttt{v10}, are not accumulated variables, so the ECMWF notice does not indicate that they needed replacement, and a 00:00 value is not a daily mean. Section~\ref{sec:diag} quantifies a consequence of this second concern. I therefore describe the issue as handled by replacement with unresolved semantics, and not as corrected.
+
+\subsection{Resulting modelling table}
+The final table has 23,698 rows, 697 locations, 34 years and no duplicate year--location keys, no exact duplicate rows and no missing values in the retained predictors. Specific mass change has mean $-0.2966$~\mwe, median $-0.2775$~\mwe, standard deviation 0.478 and range $[-2.143,\,1.181]$~\mwe; 72.3\% of values are negative. Of the 15 climate variables, several are strongly related (Fig.~\ref{fig:corr}): \texttt{sde} and \texttt{sd} are perfectly correlated ($r\approx1.00$), \texttt{ro} and \texttt{tp} reach $r=0.98$, \texttt{ro} and \texttt{sro} $r=0.97$, and \texttt{snowc} and \texttt{ssr} $r=-0.93$. Nine predictor pairs exceed $|r|=0.8$. Individual predictors correlate only weakly with the continuous target (largest absolute value 0.23 for year, followed by 0.22 for \texttt{tp} and 0.21 for \texttt{ro}), which anticipates the modest scores reported later. These are pooled, unadjusted correlations and mix spatial with temporal variation.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_correlation.pdf}
+\caption{Pearson correlation among the 17 predictors and the continuous target (last row and column), pooled over all records. Each cell is annotated with the signed Pearson coefficient $r$ (two decimals); larger $|r|$ indicates stronger linear association. Collinearity is high within the snow, runoff and radiation groups.}
+\label{fig:corr}
+\end{figure*}
+
+\section{Problem Formulation}\label{sec:problem}
+Let $i=1,\dots,N$ index records, with $N=23{,}698$, each defined by a location $\ell_i\in\{1,\dots,L\}$, $L=697$, and a hydrological year $Y_i\in\{1991,\dots,2024\}$. Let $m_i$ be the specific mass change in \mwe{} and $u_i$ its reported uncertainty. The feature vector is $\mathbf{x}_i\in\mathbb{R}^{p}$ with $p=17$. The three-class label is
+\begin{equation}
+y_i=
+\begin{cases}
+\text{gain}, & m_i>\tau,\\
+\text{loss}, & m_i<-\tau,\\
+\text{near balance}, & -\tau\le m_i\le\tau,
+\end{cases}
+\qquad \tau=0.1~\mwe.
+\label{eq:classes}
+\end{equation}
+The learning problem is to estimate a classifier $f:\mathbb{R}^{p}\to\{1,2,3\}$ that minimises expected misclassification across classes under a validation scheme that holds out whole spatial groups. With $K=3$ classes and training set $\mathcal{D}_{\text{tr}}$ of size $n$, empirical risk minimisation with class weights $w_k$ gives
+\begin{equation}
+\hat f=\arg\min_{f\in\mathcal{F}}\ \frac{1}{n}\sum_{i\in\mathcal{D}_{\text{tr}}} w_{y_i}\,\mathcal{L}\!\left(y_i,f(\mathbf{x}_i)\right)+\Omega(f),
+\label{eq:erm}
+\end{equation}
+where $\mathcal{L}$ is the model-specific loss and $\Omega$ a regulariser.
+
+The task is retrospective: $\mathbf{x}_i$ summarises the same hydrological year as the label, so the classifier cannot be applied before the year ends. The folds hold out locations and not years, so the experiment tests transfer to unseen \emph{places} within the observed period and does not test forecasting. The threshold $\tau$ is a project convention and is not adjusted to the product's uncertainty, which has mean 0.2635~\mwe{} and median 0.186~\mwe{}. Converting a continuous quantity to three bins also discards magnitude, and rows near $\pm\tau$ can flip class under small changes in the target.
+
+\section{Methodology}\label{sec:method}
+\subsection{Classifiers}
+Four classifier families were implemented in scikit-learn \cite{pedregosa2011}. They were chosen to span linear, kernel and tree-ensemble inductive biases, matching the blueprint's baseline-plus-diverse-classes principle, and each is run with identical folds and features.
+
+\emph{Logistic Regression (LR)} models class probabilities with a softmax over linear scores,
+\begin{equation}
+P(y=k\mid\mathbf{x})=\frac{\exp(\boldsymbol{\beta}_k^{\top}\mathbf{x}+b_k)}{\sum_{j=1}^{K}\exp(\boldsymbol{\beta}_j^{\top}\mathbf{x}+b_j)},
+\label{eq:lr}
+\end{equation}
+and minimises a weighted cross-entropy plus an $\ell_2$ penalty whose strength is controlled by $C$. It is transparent and cheap, but it cannot represent nonlinear boundaries or interactions.
+
+\emph{Support Vector Machine (SVM) with RBF kernel} uses
+\begin{align}
+K(\mathbf{x},\mathbf{x}')&=\exp\!\left(-\gamma\|\mathbf{x}-\mathbf{x}'\|_2^2\right),\label{eq:svmk}\\
+g(\mathbf{x})&=\sum_{s\in\mathcal{S}}\alpha_s y_s K(\mathbf{x}_s,\mathbf{x})+b,
+\label{eq:svm}
+\end{align}
+where $\mathcal{S}$ is the set of support vectors, $\alpha_s$ the dual coefficients and $\gamma$ the kernel width; $C$ trades margin width against violations \cite{cortes1995,chang2011}. Multi-class prediction is built from pairwise classifiers, and the one-vs-rest decision scores are used for ROC analysis. Performance depends on feature scaling and on $(C,\gamma)$.
+
+\emph{Random Forest (RF)} averages $B$ trees grown on bootstrap samples with random feature subsets at each split, so the ensemble prediction is the majority vote or averaged class probability,
+\begin{equation}
+\hat P(y=k\mid\mathbf{x})=\frac{1}{B}\sum_{b=1}^{B}P_b(y=k\mid\mathbf{x}),
+\label{eq:rf}
+\end{equation}
+which captures nonlinearity and interactions without scaling \cite{breiman2001}. Deep trees can fit noise, which the training--validation gaps below make visible.
+
+\emph{Gradient Boosting (GB)} builds an additive model $F_T(\mathbf{x})=\sum_{t=1}^{T}\eta\,h_t(\mathbf{x})$ of shallow trees fitted stagewise to the negative gradient of a differentiable loss, with learning rate $\eta$ \cite{friedman2001}. For $K$ classes, scikit-learn fits $K$ regression trees per iteration under the multinomial deviance. Boosting reduces bias flexibly but is the most sensitive of the four to hyperparameters and to noisy labels.
+
+\subsection{Preprocessing and class-imbalance handling}
+LR and SVM sit in pipelines with a standard scaler,
+\begin{equation}
+\tilde x_{j}=\frac{x_{j}-\mu_{j}^{\text{tr}}}{\sigma_{j}^{\text{tr}}},
+\label{eq:scale}
+\end{equation}
+whose mean $\mu_j^{\text{tr}}$ and standard deviation $\sigma_j^{\text{tr}}$ are estimated on the training portion of each fold only. Tree models need no scaling.
+
+Class imbalance is handled by cost-sensitive weighting; no resampling is used. The balanced weight of class $k$ computed on a training set of size $n$ is
+\begin{equation}
+w_k=\frac{n}{K\,n_k},
+\label{eq:cw}
+\end{equation}
+where $n_k$ is the number of training records of class $k$. LR and SVM use the library's \texttt{balanced} option, RF uses \texttt{balanced\_subsample}, which recomputes weights within each bootstrap sample, and GB receives per-record sample weights computed from the labels of the current training fold. Weights are therefore derived from training data only, and the validation partition is never weighted or resampled. Random undersampling and combined schemes were not part of the final experiment, and a no-weighting control was not run, so the paper cannot say how much weighting helps relative to doing nothing.
+
+\subsection{Spatially grouped validation}
+The 697 unique coordinate pairs were standardised by axis and clustered by $k$-means \cite{lloyd1982} with $k=25$, 20 initialisations and seed 42. The objective is
+\begin{equation}
+\min_{\{C_c\}}\sum_{c=1}^{25}\sum_{\ell\in C_c}\left\|\mathbf{z}_\ell-\boldsymbol{\mu}_c\right\|_2^2,
+\label{eq:kmeans}
+\end{equation}
+where $\mathbf{z}_\ell$ are the standardised coordinates and $\boldsymbol{\mu}_c$ the cluster centroid. Each location's 34 records inherit one cluster label. Cluster sizes range from 9 to 40 locations (mean 27.9, median 29). Five-fold StratifiedGroupKFold with shuffling and seed 42 then assigns whole clusters to folds while trying to preserve class proportions \cite{pedregosa2011}. A built-in assertion verifies that no cluster is shared between training and validation in any fold, and it passed for all five folds. Fig.~\ref{fig:clusters} shows the clusters. Table~\ref{tab:folds} lists fold sizes and class counts.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{spatial_clusters_nb.png}
+\caption{K-means groups of the 697 grid locations (25 clusters, standardised coordinates). The colour map repeats across clusters, so adjacent clusters can share a colour. Groups prevent a location or cluster from crossing a fold; they are not buffered geographic blocks.}
+\label{fig:clusters}
+\end{figure}
+
+\begin{table}[t]
+\caption{Spatial fold composition (from the validation notebook).}
+\label{tab:folds}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{1.8pt}
+\begin{tabular}{crrcrrrc}
+\toprule
+Fold & Train & Val. & Clusters tr/val & Gain & Loss & Near & Shared\\
+\midrule
+1 & 19,754 & 3,944 & 20 / 5 & 863 & 2,506 & 575 & 0\\
+2 & 18,904 & 4,794 & 20 / 5 & 1,111 & 3,022 & 661 & 0\\
+3 & 19,924 & 3,774 & 21 / 4 & 303 & 3,111 & 360 & 0\\
+4 & 18,122 & 5,576 & 19 / 6 & 1,453 & 3,192 & 931 & 0\\
+5 & 18,088 & 5,610 & 20 / 5 & 1,246 & 3,513 & 851 & 0\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Group separation is verified at the level of cluster identity, not geographic distance. Cells on either side of a cluster boundary may be neighbours and may share climate, so some spatial dependence can still leak across folds. A buffered design that removes training cells within a set distance of each validation block would be stronger, and the distance should relate to the autocorrelation range of the target, which was not estimated here. Standardising latitude and longitude separately is also not equivalent to clustering in projected distance. Fold composition varies noticeably: fold 3 contains only 303 gain records in validation, whereas fold 4 contains 1,453, so fold scores are not exchangeable.
+
+\subsection{Computational complexity}
+Table~\ref{tab:complexity} gives approximate theoretical costs for every algorithm in the final workflow. The expressions are order-of-magnitude and rest on stated assumptions; they are not measured times and ignore implementation constants, parallelism and caching. Here $n$ is the number of training records, $p$ the number of features, $K$ the number of classes, $I$ solver iterations, $T$ boosting iterations, $B$ trees in a forest, $\tilde p$ the number of candidate features per split ($\tilde p=\lceil\sqrt p\,\rceil$ for the classifier default), $d$ maximum tree depth, $m$ the number of support vectors, $k$ clusters and $q$ the coordinate dimension.
+
+\begin{table*}[t]
+\caption{Theoretical computational complexity of the algorithms in the final methodology, with symbols defined in the text. Assumptions: dense data, no parallelism, tree split search by sorting, and pairwise SVM decomposition.}
+\label{tab:complexity}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{0.13\textwidth}p{0.20\textwidth}p{0.14\textwidth}p{0.17\textwidth}p{0.27\textwidth}}
+\toprule
+Algorithm & Training time & Prediction time (per sample) & Space & Main influencing parameters\\
+\midrule
+Logistic Regression (L-BFGS, multinomial) & $O(I\,n\,p\,K)$ & $O(pK)$ & $O(np+pK)$ & Solver iterations $I$ (cap 2000), $C$, $K$, $p$\\\\
+SVM, RBF kernel (SMO, pairwise) & Between $O(n^{2}p)$ and $O(n^{3}p)$ & $O(m\,p)$ & $O(np)$ data; up to $O(n^{2})$ if the kernel matrix is cached; model $O(mp)$ & $C$, $\gamma$, class weights; $m$ grows with overlap and noise\\\\
+Random Forest & $O\!\left(B\,\tilde p\,n\log n\right)$ for fully grown trees; $O(B\,\tilde p\,n\,d)$ if depth capped & $O(B\,d)$ & $O(B\,L_{\max})$ nodes with $L_{\max}\le n/s_{\min}$ for min. leaf size $s_{\min}$ & Trees $B$, depth $d$, leaf size, features per split\\\\
+Gradient Boosting (depth-limited trees) & $O\!\left(T\,K\,d\,p\,n\right)$ with presorting-style split search & $O(T\,K\,d)$ & $O(T\,K\,2^{d})$ & Iterations $T$, depth $d$, learning rate $\eta$ (trade-off with $T$), $K$\\\\
+$k$-means (Lloyd, spatial grouping) & $O(I\,n_{\text{loc}}\,k\,q)$ per initialisation, times 20 initialisations & $O(kq)$ to assign a point & $O(n_{\text{loc}}q+kq)$ & Clusters $k=25$, iterations $I$, locations $n_{\text{loc}}=697$, $q=2$\\\\
+Standard scaler (LR, SVM) & $O(np)$ & $O(p)$ & $O(p)$ & Features $p$\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Three notes qualify the table. First, SVM training cost depends on the solver. LIBSVM-style sequential minimal optimisation typically behaves between quadratic and cubic in $n$ for hard problems, and a pairwise decomposition into $K(K-1)/2$ subproblems of about $2n/K$ records each changes the constant but not the order \cite{chang2011}. Second, for tree ensembles the sort-based expression is a simplification; histogram-based and exact-greedy implementations differ, and the scikit-learn classifier used here is the conventional, non-histogram boosting estimator. Third, the cost of the search is multiplicative: the 21 configurations and five folds give 105 fits, so the total search cost is the sum of per-fit costs, and an expanded grid grows it linearly in the number of configurations. For the selected configurations ($n\approx19{,}000$ per training fold, $p=17$, $K=3$), the dominant quadratic or cubic term applies to the SVM, the term $T K d p n$ with $T=200$ and $d=3$ applies to boosting, and the term $B\tilde p\,n\log n$ with $B=300$ applies to the forest. These counts rank the methods but do not by themselves predict wall-clock time, as Section~\ref{sec:cost} shows.
+
+\subsection{Evaluation metrics}
+Let $TP_k$, $FP_k$ and $FN_k$ be the true positives, false positives and false negatives for class $k$ in the confusion matrix $\mathbf{M}$, whose entry $M_{ab}$ counts records of true class $a$ predicted as class $b$. The metrics are
+\begin{align}
+\mathrm{Acc}&=\frac{\sum_k TP_k}{N},\quad
+P_k=\frac{TP_k}{TP_k+FP_k},\label{eq:prf}\\
+R_k&=\frac{TP_k}{TP_k+FN_k},\quad
+F1_k=\frac{2P_kR_k}{P_k+R_k},\label{eq:f1}\\
+\mathrm{BA}&=\frac{1}{K}\sum_{k=1}^{K}R_k,\quad
+\mathrm{MacroF1}=\frac{1}{K}\sum_{k=1}^{K}F1_k.\label{eq:macro}
+\end{align}
+The one-vs-rest ROC-AUC for class $k$, $\mathrm{AUC}_k$, uses the model's score for class $k$ against all others, and the macro value is $\frac{1}{K}\sum_k\mathrm{AUC}_k$. Macro-F1 is the primary selection metric because it gives each class equal weight under imbalance \cite{sokolova2009}; balanced accuracy and accuracy break ties. Confusion matrices and per-class scores are pooled over the five validation partitions (out-of-fold, OOF), so each record is predicted exactly once by a model that did not see its cluster.
+
+\section{Experimental Design}\label{sec:design}
+\subsection{Target distribution}
+Table~\ref{tab:classes} gives the class distribution and Fig.~\ref{fig:problem} summarises the problem: heterogeneous change over time and space, unequal classes and a sharp distribution shift in the last years. Loss is the majority class at 64.75\%, so a rule that predicts loss for every record would reach 0.6475 accuracy and zero recall for the other two classes. This is the baseline against which accuracy is read.
+
+\begin{table}[t]
+\caption{Target-class distribution under Eq.~\eqref{eq:classes}.}
+\label{tab:classes}
+\centering
+\footnotesize
+\begin{tabular}{lrr}
+\toprule
+Class & Records & Share (\%)\\
+\midrule
+Mass loss ($m<-0.1$) & 15,344 & 64.75\\
+Mass gain ($m>0.1$) & 4,976 & 21.00\\
+Near balance & 3,378 & 14.25\\
+\midrule
+Total & 23,698 & 100.00\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_problem_statement.pdf}
+\caption{Problem statement. (a) Annual mass change is heterogeneous across cells: the band spans the 10th to 90th percentile and the shaded strip marks the near-balance interval. (b) The three classes are unequally represented. (c) The class mix shifts over time, with gain and near-balance cells almost absent in 2022--2024, so a model trained on all years faces a changing distribution.}
+\label{fig:problem}
+\end{figure*}
+
+Annual class proportions vary strongly. In 2022 no cell is classed as gain or near balance, in 2023 only five cells are near balance and none gains, and in 2024 one cell is near balance and none gains. Because the folds hold out locations and not years, all folds contain these years in training and validation, and the temporal imbalance acts as a source of non-stationarity rather than a split criterion. Fig.~\ref{fig:perYear} shows the same pattern as counts.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{fig_class_per_year.pdf}
+\caption{Cells per class and hydrological year (697 cells per year). The scarcity of gain and near-balance cells after 2021 illustrates temporal distribution shift.}
+\label{fig:perYear}
+\end{figure}
+
+\subsection{Label uncertainty}
+Fig.~\ref{fig:uncert} compares the labels with the reported uncertainty. The median uncertainty (0.186~\mwe) exceeds the class half-width (0.1~\mwe), and 66.5\% of all records have an uncertainty above 0.1~\mwe. In 32.2\% of records the absolute value of the estimate is no larger than its own uncertainty, which includes 85.8\% of near-balance records. In 41.7\% of records the distance from the estimate to the nearest class boundary is within one reported uncertainty, so those records could plausibly belong to a neighbouring class. These shares were computed directly from the prepared table. They assume the uncertainty column is a one-sigma interval, which I could not confirm from the supplied documentation. Whatever its exact definition, the diagnostic implies that a large fraction of labels, and nearly all near-balance labels, are not statistically separable from their neighbours, and the near-balance class should be expected to be the hardest.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_target_uncertainty.pdf}
+\caption{Target and label uncertainty. (a) Distribution of specific mass change with the near-balance band shaded. (b) Distribution of reported uncertainty with the class half-width marked. (c) Mass change against reported uncertainty for 4,000 random records; many records fall inside the shaded band with uncertainty above the 0.1 line.}
+\label{fig:uncert}
+\end{figure*}
+
+\subsection{Hyperparameter search and selection}
+Table~\ref{tab:params} lists the compact grids. The search comprises $3+8+2+8=21$ configurations and 105 fits, using the same five folds for every candidate. The best configuration per family is the one with the highest mean validation macro-F1, with balanced accuracy and accuracy as tie-breakers. The random seed is 42 in every component (clustering, fold assignment, estimators). The analysis used Python with scikit-learn, pandas and NumPy; version numbers are recorded in the experiment metadata and the notebook environment and should be listed in a release.
+
+\begin{table}[t]
+\caption{Search grids and selected configurations (21 candidates, 105 fits).}
+\label{tab:params}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{0.20\columnwidth}p{0.36\columnwidth}p{0.30\columnwidth}}
+\toprule
+Classifier & Search values (configs) & Selected\\
+\midrule
+LR & $C\in\{0.1,1,10\}$ (3) & $C=10$\\
+SVM (RBF) & $C\in\{1,5\}$; $\gamma=$ scale (2) & $C=5$; $\gamma=$ scale\\
+RF & trees 150/300; depth 12/none; leaf 1/3 (8) & 300 trees; depth 12; leaf 3\\
+GB & trees 100/200; rate 0.05/0.1; depth 2/3 (8) & 200 trees; rate 0.1; depth 3\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The grids are small. The same caution applies to search procedures: no optimiser outperforms all others over all possible objectives \cite{wolpert1997}, so the compact grid is a pragmatic choice and not a claim of optimality. The selected Gradient Boosting setting lies at the upper edge of all three searched ranges (200 trees, rate 0.1, depth 3), and the selected SVM cost is the larger of two values, so the optimum may lie outside the grid. LR has a single hyperparameter and the three values give almost identical scores (0.4035 to 0.4042 mean fold macro-F1), so LR's low score reflects model capacity and not under-tuning.
+
+\subsection{Reporting protocol}
+Model selection uses mean validation macro-F1 over the five folds. Pooled OOF predictions are then produced by refitting the selected configuration in each fold. Because the same folds serve selection and reporting, the pooled values are selection-fold diagnostics and not an independent test. A final Gradient Boosting model was also fitted on all 23,698 records and saved, but its fit is not an evaluation. No test partition, nested loop or chronological holdout exists in this experiment.
+
+\section{Results}\label{sec:results}
+\subsection{Model comparison}
+Gradient Boosting ranked first on every summary (Table~\ref{tab:oof}, Fig.~\ref{fig:mc}). Pooled OOF accuracy was 0.6839 for Gradient Boosting, 0.6476 for Random Forest, 0.5192 for SVM and 0.5119 for Logistic Regression. Balanced accuracy and macro-F1 give the same order (0.6297 and 0.6037 for Gradient Boosting, 0.5382 and 0.5294 for Random Forest, 0.4747 and 0.4471 for SVM, 0.4368 and 0.4180 for Logistic Regression), and so does macro one-vs-rest ROC-AUC (0.8373, 0.7654, 0.6796, 0.6526).
+
+\begin{table}[t]
+\caption{Pooled spatial OOF metrics for each selected classifier. Selection-fold diagnostics, not independent test scores.}
+\label{tab:oof}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{lrrrrr}
+\toprule
+Classifier & Acc. & Bal. acc. & Macro-F1 & Macro AUC & Macro prec.\\
+\midrule
+Gradient Boosting & 0.6839 & 0.6297 & 0.6037 & 0.8373 & 0.6058\\
+Random Forest & 0.6476 & 0.5382 & 0.5294 & 0.7654 & 0.5244\\
+SVM (RBF) & 0.5192 & 0.4747 & 0.4471 & 0.6796 & 0.4621\\
+Logistic Regression & 0.5119 & 0.4368 & 0.4180 & 0.6526 & 0.4251\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{fig_model_comparison.pdf}
+\caption{Pooled spatial OOF accuracy, balanced accuracy, macro-F1 and macro ROC-AUC for the four classifiers. The dotted line marks the all-loss accuracy.}
+\label{fig:mc}
+\end{figure}
+
+Gradient Boosting's accuracy exceeds the all-loss rule by only about 3.6 percentage points (0.6839 against 0.6475). Random Forest is essentially at that rule (0.6476), and SVM and Logistic Regression are below it, because balanced weighting deliberately gives up majority-class accuracy to recover minority recall. Accuracy therefore cannot rank these models. The class-sensitive measures can, and they show a larger separation: Gradient Boosting improves balanced accuracy over the weakest model by 19 points.
+
+Fold means are lower than pooled values for macro-F1 (Table~\ref{tab:fold}). Mean validation macro-F1 was 0.5959 (SD 0.0506) for Gradient Boosting, 0.5228 (0.0359) for Random Forest, 0.4315 (0.0289) for SVM and 0.4042 (0.0263) for Logistic Regression. The Gradient Boosting score ranges from 0.523 in fold 3 to 0.658 in fold 1 (Fig.~\ref{fig:folds}), a spread of 0.135. That range is comparable with the gap between Gradient Boosting and Random Forest, so with five folds and shared spatial structure the second place is better described as clearly ahead on average than as separated in every fold. Gradient Boosting was highest in all five folds, however, and the weakest two models never overtook the top two.
+
+\begin{table}[t]
+\caption{Best configuration per family under five-fold spatial-group validation (mean over folds; SD of macro-F1 over the five folds).}
+\label{tab:fold}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{lrrrr}
+\toprule
+Classifier & Macro-F1 (SD) & Bal. acc. & Acc. & Train F1\\
+\midrule
+Gradient Boosting & 0.5959 (0.0506) & 0.6292 & 0.6881 & 0.7146\\
+Random Forest & 0.5228 (0.0359) & 0.5326 & 0.6557 & 0.7957\\
+SVM (RBF) & 0.4315 (0.0289) & 0.4637 & 0.5259 & 0.5276\\
+Logistic Regression & 0.4042 (0.0263) & 0.4304 & 0.5199 & 0.4336\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{fig_fold_scores.pdf}
+\caption{Validation macro-F1 in each of the five spatial folds for the selected configurations (dots), with fold means (bars) and lines connecting the same fold across models. Fold ordering of the models is stable even though the absolute level changes.}
+\label{fig:folds}
+\end{figure}
+
+\subsection{Class-wise performance}
+The headline scores hide the main weakness (Table~\ref{tab:class}, Figs.~\ref{fig:cm} and \ref{fig:pc}). For Gradient Boosting, mass loss has F1 0.81 (precision 0.91, recall 0.73), mass gain 0.65 (precision 0.64, recall 0.66) and near balance 0.35 (precision 0.27, recall 0.50). Near balance recall of 0.50 means half of these records were recovered, but precision of 0.27 means that about three in four records predicted as near balance belong elsewhere. The confusion matrix (Fig.~\ref{fig:cm}) shows where the errors come from: of 15,344 true loss records, Gradient Boosting predicted 3,120 (20\%) as near balance and 969 (6\%) as gain. Because loss is large, those 3,120 records account for most of the false near-balance predictions, which outnumber the 1,687 true near-balance records that were correctly found. Of the 4,976 gain records, 1,352 (27\%) were predicted as near balance. The class is thus the sink for ambiguity from both sides, which agrees with the label-uncertainty diagnostic.
+
+\begin{table}[t]
+\caption{Pooled spatial OOF class-wise precision, recall and F1 of all four classifiers.}
+\label{tab:class}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+& \multicolumn{3}{c}{Mass gain} & \multicolumn{3}{c}{Mass loss} & \multicolumn{3}{c}{Near balance}\\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
+Classifier & P & R & F1 & P & R & F1 & P & R & F1\\
+\midrule
+GB & 0.64 & 0.66 & 0.65 & 0.91 & 0.73 & 0.81 & 0.27 & 0.50 & 0.35\\
+RF & 0.51 & 0.57 & 0.54 & 0.82 & 0.75 & 0.78 & 0.24 & 0.29 & 0.26\\
+SVM & 0.37 & 0.47 & 0.42 & 0.82 & 0.56 & 0.67 & 0.19 & 0.39 & 0.26\\
+LR & 0.32 & 0.49 & 0.39 & 0.78 & 0.58 & 0.67 & 0.17 & 0.24 & 0.20\\
+Support & \multicolumn{3}{c}{4,976} & \multicolumn{3}{c}{15,344} & \multicolumn{3}{c}{3,378}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_confusion.pdf}
+\caption{Pooled spatial OOF confusion matrices. Cells show counts and the row-normalised share of each true class. Counts were read from the validation notebook output and each matrix sums to the class supports in Table~\ref{tab:class}.}
+\label{fig:cm}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_perclass.pdf}
+\caption{Class-wise precision, recall and F1 for the four classifiers. Near balance is the weakest class for every model, and precision is the weakest component for that class.}
+\label{fig:pc}
+\end{figure*}
+
+No model's near-balance F1 exceeds 0.35. Random Forest, SVM and Logistic Regression all fall at or below 0.26. The lowest near-balance recall (0.24) belongs to Logistic Regression and the highest (0.50) to Gradient Boosting. For gain, the models differ most in precision, from 0.64 down to 0.32, which indicates that linear and kernel models mislabel many loss records as gain.
+
+\subsection{ROC analysis}
+One-vs-rest ROC-AUC for Gradient Boosting is 0.900 for gain, 0.886 for loss and 0.726 for near balance (Fig.~\ref{fig:roc} and Fig.~\ref{fig:auc}). The ranking of the three classes by AUC mirrors their ranking by F1, so the weakness on near balance is a ranking weakness as well as a threshold effect. A positive point for the model is that the gain and loss scores separate the classes well over thresholds. Because AUC measures ranking over all thresholds, whereas precision and recall depend on the classifier's decision rule, the two summaries need not agree; here they do.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.92\columnwidth]{roc_gradient_boosting.png}
+\caption{One-vs-rest ROC curves from pooled spatial OOF scores for Gradient Boosting (notebook output).}
+\label{fig:roc}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{fig_auc_class.pdf}
+\caption{Class-wise one-vs-rest ROC-AUC for all classifiers. The dotted line marks chance (0.5); near-balance AUC for SVM and Logistic Regression is only 0.58--0.59.}
+\label{fig:auc}
+\end{figure}
+
+\subsection{Training versus validation and hyperparameter sensitivity}
+Training scores of the selected models exceed validation scores by different amounts (Table~\ref{tab:fold}, Fig.~\ref{fig:tv}). Random Forest's training macro-F1 is 0.7957 against 0.5228 validation, a gap of 0.27. Gradient Boosting's gap is 0.12 (0.7146 against 0.5959), SVM's 0.10 and Logistic Regression's only 0.03. The candidates with unlimited tree depth show the extreme: Random Forest with no depth limit and one-sample leaves reaches a training macro-F1 of 1.000 but a validation macro-F1 of 0.452 to 0.457 (Fig.~\ref{fig:hp}b). Linear and kernel models do not overfit; they underfit, which fits their weak scores. Gradient Boosting performs best despite a moderate gap, and its scores rise monotonically with more trees, higher learning rate and greater depth across the grid (0.509 for the smallest configuration to 0.596 for the largest, Fig.~\ref{fig:hp}a). The monotone trend, together with the edge-of-grid optimum, suggests that a larger search could find still better settings, which is a reason to treat the Gradient Boosting score as a lower bound for the family and its margin over Random Forest as possibly larger than reported. That inference needs confirmation by extending the grid.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{fig_train_val.pdf}
+\caption{Mean training and validation macro-F1 and accuracy over five spatial folds for the selected configurations. Labels show the training minus validation difference.}
+\label{fig:tv}
+\end{figure}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_hyperparam.pdf}
+\caption{Hyperparameter sensitivity of mean validation macro-F1. (a) The eight Gradient Boosting configurations; the best lies at the upper edge of the grid. (b) The eight Random Forest configurations, with training and validation scores; unlimited depth reproduces the training data but not the validation clusters.}
+\label{fig:hp}
+\end{figure*}
+
+\subsection{Computational cost}\label{sec:cost}
+Table~\ref{tab:cost} reports the measured wall-clock time of the search from the notebook log together with the one logged final fit. These come from a single run on a hosted notebook environment whose hardware was not recorded, include scoring on both the training and validation portions, and are rounded to 0.1~min in the log. Random Forest ran with parallel workers. They are therefore indicative only. Per fit, Logistic Regression took about 0.05~min, Random Forest about 0.49~min, SVM about 1.05~min and Gradient Boosting about 1.58~min, so Gradient Boosting was the most expensive and the best model, and Logistic Regression was the cheapest and the weakest. The trade-off is visible in Fig.~\ref{fig:cost}: moving from Logistic Regression to Gradient Boosting multiplies the per-fit time by about 34 and increases pooled macro-F1 by 0.19. SVM costs more per fit than Random Forest but delivers lower scores in this experiment, so it is dominated. The logged final Gradient Boosting fit on all 23,698 records took 196.67~s and produced a 0.75~MB model file. Memory was not profiled, and repeated runs were not made, so there are no confidence intervals on cost.
+
+\begin{table}[t]
+\caption{Measured wall-clock cost from the logged search (indicative; unspecified hosted hardware).}
+\label{tab:cost}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{lrrrr}
+\toprule
+Classifier & Fits & Search time (min) & Per fit (min) & Macro-F1 (OOF)\\
+\midrule
+Logistic Regression & 15 & 0.7 & 0.05 & 0.4180\\
+Random Forest & 40 & 19.5 & 0.49 & 0.5294\\
+SVM (RBF) & 10 & 10.5 & 1.05 & 0.4471\\
+Gradient Boosting & 40 & 63.3 & 1.58 & 0.6037\\
+Total search & 105 & 94.0 & 0.90 & --\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{fig_cost_perf.pdf}
+\caption{Performance versus logged cost: pooled OOF macro-F1 against mean wall-clock time per fit (log scale). Times come from one run on unspecified hardware.}
+\label{fig:cost}
+\end{figure}
+
+\subsection{Predictor behaviour by class}
+Box plots of selected predictors by class (Fig.~\ref{fig:pred}) show overlap rather than clean separation. Median annual 2-m temperature is 266.6~K for gain, 267.2~K for near balance and 268.0~K for loss, so colder cells are more often gaining, but the interquartile ranges overlap strongly. Median snow cover is 37.8 for gain, 38.5 for near balance and 42.7 for loss, a counter-intuitive ordering (more snow cover in loss cells) that is plausible only because cells differ in location and elevation, and it illustrates why pooled correlation is not causal. The weak univariate separation is consistent with the modest scores of linear models and with the larger gain from nonlinear interactions.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_predictors_by_class.pdf}
+\caption{Distribution of annual 2-m temperature, snow cover and snowmelt by target class (outliers hidden). Distributions overlap strongly, so no single predictor separates the classes.}
+\label{fig:pred}
+\end{figure*}
+
+\subsection{A diagnostic on replaced ERA5-Land months}\label{sec:diag}
+Fig.~\ref{fig:disc} plots annual means of three climate variables across the whole grid. Before 2022, annual mean 2-m temperature is $268.54\pm0.49$~K (mean and standard deviation of 1991--2021). In hydrological year 2022, which contains no replaced months, it is 268.75~K ($+0.42$ SD). In 2023, with seven replaced months, it is 267.14~K ($-2.85$ SD), and in 2024, with eleven replaced months, it is 264.70~K ($-7.79$ SD). Annual mean zonal wind \texttt{u10} falls from $0.54\pm0.05$ to 0.278 and 0.199~m\,s$^{-1}$, that is $-5.5$ and $-7.1$ SD. Annual precipitation, in contrast, stays within one standard deviation of the earlier mean ($+0.60$ and $-0.67$ SD), and net solar radiation is $+2.15$ SD in 2023 and $+0.72$ SD in 2024.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_era5_discontinuity.pdf}
+\caption{Grid-mean annual (a) 2-m temperature, (b) 10-m zonal wind and (c) total precipitation by hydrological year. The shaded red band marks the two years that contain replaced months; the grey band is the 1991--2021 mean $\pm2$ standard deviations.}
+\label{fig:disc}
+\end{figure*}
+
+A temperature drop of 3.8~K in one year across 697 glacierised cells is not a plausible climate signal against a warming trend, and the timing coincides exactly with the replaced months. The pattern is what one would expect if the replaced values for \texttt{t2m} and \texttt{u10} represent a different time of day, for example a 00:00 value in place of a daily mean. This is a hypothesis; I did not compare the recovery values with the original monthly means. It does show that the climate predictors for hydrological years 2023 and 2024 are inconsistent with earlier years, which matters for three reasons. Those two years hold 1,394 of 23,698 records (5.9\%). They also coincide with the years in which gain and near-balance labels almost disappear, so any model can learn a spurious association between an anomalous temperature level and the loss class. Finally, hydrological year is itself a predictor, so the model can identify these years directly. The scores in this paper therefore carry an unquantified contamination risk from 5.9\% of the records.
+
+\section{Discussion}\label{sec:discussion}
+\subsection{What the evidence supports}
+Under shared spatially grouped folds, boosted trees give the best separation of the three classes, bagged trees are second, and kernel and linear models are clearly weaker. This ordering agrees in direction with the finding in the Alpine base study that nonlinear and tree-based learners beat a linear baseline and that ensemble trees are strong on medium-sized correlated tabular data \cite{anilkumar2023}, and with the use of boosting as the preferred learner in several High Mountain Asia studies \cite{gurung2025,peng2025,sjursen2025}. It does not agree on the second place: in the Alpine study the SVM was competitive with the forest, whereas here it was clearly below it. Differences in task (classification versus point regression), sample size, feature set and validation make this a comparison of tendencies, not of numbers. Regression scores such as R$^2$ and classification scores such as macro-F1 are not interchangeable, so I do not rank this paper against those papers.
+
+\subsection{Why the weakest model is weak, and why boosting is strongest}
+The weak scores of Logistic Regression and the SVM are mostly a capacity effect. Their training scores are close to their validation scores (0.43 and 0.53 against 0.40 and 0.43), which indicates that they do not overfit but also cannot represent the structure; the univariate separation in Fig.~\ref{fig:pred} is small, and a linear boundary in 17 standardised, strongly collinear features is unlikely to capture interactions between snow state and energy variables. The forest overfits when allowed, and its depth-limited form is a regularised compromise that still has a large gap. Boosting adds capacity gradually, and its shallow-tree structure appears to balance bias and variance better under these data. I did not run feature-importance analysis, so I do not claim to know which predictors drive the boosted model. Collinearity among \texttt{sde}/\texttt{sd}, \texttt{ro}/\texttt{tp}/\texttt{sro} and \texttt{snowc}/\texttt{ssr} would in any case make importance shares unstable, as the Alpine base study also cautions for correlated inputs \cite{anilkumar2023}.
+
+\subsection{Near balance is a label problem as much as a model problem}
+The consistent weakness of every model on near balance has at least four candidate explanations, which these data separate only partially. (i) \emph{Label ambiguity}: 85.8\% of near-balance records have an estimate smaller than their own uncertainty, and the median uncertainty is almost twice the class half-width. This explanation is directly supported by the table. (ii) \emph{Class size}: near balance is 14.25\% of records, but the gain class is also minority and achieves F1 of 0.65, so imbalance alone does not explain the difference. (iii) \emph{Temporal scarcity}: only six near-balance records exist in the last three years, and the class is concentrated in earlier decades, so a model cannot learn a stable near-balance signature that applies to recent years; this is plausible but not tested. (iv) \emph{Transitional position}: a band between two larger classes is inherently easy to confuse with both, and the confusion matrix is consistent with this. The first and fourth are structural and cannot be fixed by tuning. A label rule tied to each record's uncertainty, which the blueprint proposes, would change the problem and could be compared with the fixed rule as a sensitivity analysis.
+
+\subsection{Spatial validation: what it does and does not show}
+The grouped design removes repeated-location leakage, which is the largest obvious leakage in a panel of 697 locations by 34 years, and group separation is verified. It does not show geographic independence. The clusters are formed in standardised coordinate space, neighbouring clusters touch, and cells near a boundary share climate. Spatial dependence may therefore lower the apparent difficulty of transfer. Wadoux et al. caution that spatial cross-validation cannot replace probability-sample validation for map accuracy \cite{wadoux2021}, and Meyer and Pebesma stress that cross-validation error applies only inside the model's area of applicability \cite{meyer2021}; both points apply here. The folds also include all years, so the test is of spatial transfer within the observed period, and a model that exploits hydrological year can benefit from temporal structure shared by training and validation. A spatio-temporal blocked design, with a buffer and a chronological holdout, would address both limits.
+
+The reuse of folds for tuning and reporting adds an optimistic bias that grows with the number of configurations compared. The effect is probably modest for the small grids here, particularly for LR and SVM, but it is probably larger for Gradient Boosting, where eight configurations are compared and the best of them is reported. This does not alter the ranking logic but it does mean that the absolute scores of the winning configurations are upper estimates. The pooled scores are also computed from predictions of models that were selected on the same data.
+
+\subsection{Implications for HKH monitoring}
+The results support a limited, screening-level statement. With same-year reanalysis predictors and glacier area, a boosted-tree classifier can recover most mass-loss and mass-gain cells in unseen clusters with moderate reliability (F1 0.81 and 0.65) while remaining unreliable for balanced conditions. It cannot support operational forecasting, because the predictors summarise the full target year. It also cannot support glacier-level conclusions, because each record is a grid-cell aggregate. Used as a screening aid, the classifier could flag cells for closer inspection, but near-balance flags should not be trusted without the uncertainty information.
+
+\subsection{Relation to the blueprint}
+The blueprint proved most useful as a discipline for stating what was not done. Applying it forced three corrections to the draft: the Nepal-only plan was replaced by the actual HKH scope, the planned locked test was removed from the claims because it does not exist, and the uncertainty-aware target was moved from the method to the limitations. The blueprint's strongest remaining value is as a roadmap: the missing items in Table~\ref{tab:fidelity} are, in order of priority, a correction and rerun of the climate table, an uncertainty-aware label comparison, a chronological holdout, nested validation and a no-weighting control.
+
+\section{Threats to Validity and Limitations}\label{sec:threats}
+Table~\ref{tab:threats} collects the principal threats by type, with the evidence in this paper and the action that would resolve each.
+
+\begin{table*}[t]
+\caption{Threats to validity, evidence in this study and resolving action.}
+\label{tab:threats}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{0.12\textwidth}p{0.28\textwidth}p{0.27\textwidth}p{0.25\textwidth}}
+\toprule
+Type & Threat & Evidence here & Resolving action\\
+\midrule
+Internal & Same folds for tuning and reporting & Selection and pooled OOF scores share folds & Nested spatial CV or untouched spatial region\\
+Internal & Spatial leakage across adjacent clusters & Cluster identity checked, distance not & Buffered blocks; sensitivity to $k$ (e.g., 15, 25, 35)\\
+Internal & Time proxy through hydrological year & Year is a predictor; folds contain all years & Ablate year; chronological holdout\\
+Internal & Grid-edge optima & GB best at upper edge of all three ranges & Extend grid or randomised search\\
+Data & Replaced ERA5-Land months with unverified semantics & $-2.85$ and $-7.79$ SD temperature anomalies in 2023, 2024 & Keep original \texttt{t2m}, \texttt{u10}, \texttt{v10}; verify units; rerun\\
+Data & Label ambiguity vs. uncertainty & Median $u=0.186>0.1$; 85.8\% of near-balance records & Uncertainty-aware labels; boundary exclusion test\\
+Data & Uncertainty definition unknown & 1$\sigma$ vs 1.96$\sigma$, annual vs cumulative unconfirmed & Confirm in product documentation\\
+Data & 9 km reanalysis over steep terrain; no elevation, aspect or debris & Predictors limited to climate, year and area & Add topographic features; compare with stations\\
+External & Applies to 697 cells and 1991--2024 only & Panel is complete but a single product & Independent product or region\\
+External & Retrospective, not a forecast & Same-year predictors & Lagged or forecast predictors with chronological test\\
+Construct & Class thresholds are a convention & Fixed $\pm0.1$ & Report results for several $\tau$\\
+Computational & Hardware-dependent, single-run timings & Unspecified hosted hardware; no memory profile & Repeated runs on recorded hardware\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Beyond the table, three limits deserve emphasis. First, the claims are restricted to the supplied grid cells and years; they should not be extended to individual glaciers or to the HKH as a whole. Second, the diagnostics computed from the table (label ambiguity and the climate discontinuity) are exploratory summaries and not formal tests. Third, I did not verify the ERA5-Land annual aggregation rules against the original NetCDF attributes, and the exported scale of snow cover is unconfirmed.
+
+\section{Conclusion and Future Work}\label{sec:conclusion}
+This paper compared Logistic Regression, an RBF Support Vector Machine, Random Forest and Gradient Boosting for three-class classification of annual glacier mass change on 23,698 cell-year records across the HKH, within a blueprint distilled from three base papers. Under five-fold validation on 25 location clusters, Gradient Boosting led on every summary metric (mean fold macro-F1 0.5959, pooled macro-F1 0.6037, balanced accuracy 0.6297, macro ROC-AUC 0.8373), but its accuracy exceeds an all-loss rule by only about 3.6 points and its near-balance F1 is 0.35. Near balance is the hardest class for every model, and the label diagnostic shows why: the median reported uncertainty is almost twice the class half-width, and 85.8\% of near-balance estimates are no larger than their own uncertainty. The cost comparison shows that the best model is also the most expensive per fit in the logged run, by a factor of about 34 relative to Logistic Regression.
+
+Three qualifications bound these conclusions. The results are retrospective and tuned and reported on the same folds, so they are comparative baselines and not independent estimates. The two years that contain replaced ERA5-Land months show implausible temperature and wind anomalies that may contaminate 5.9\% of records. And the planned blueprint elements that would give stronger evidence, namely uncertainty-aware labels, a chronological locked test and nested validation, remain unexecuted.
+
+Future work should proceed in this order. (1) Restore the original monthly values for non-accumulated variables, verify the recovery product's semantics for accumulated ones and rerun the table and the models. (2) Compare fixed, uncertainty-aware and boundary-excluded labels. (3) Add nested spatial validation with a buffer, a cluster-count sensitivity analysis and a chronological holdout. (4) Ablate year and area and add topographic predictors. (5) Extend the Gradient Boosting grid, add a no-weighting control and evaluate histogram-based boosting. (6) Repeat the cost measurements on recorded hardware with memory profiling. Until then, the classifier is best read as a documented starting point for screening-level work on HKH glacier mass-change state, not as an operational tool.
+
+\section*{Acknowledgment}
+This study uses modified Copernicus Climate Change Service information from 2019 and 2023. Neither the European Commission nor ECMWF is responsible for any use that may be made of the Copernicus information or data it contains. No human or animal subjects were involved.
+
+\balance
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

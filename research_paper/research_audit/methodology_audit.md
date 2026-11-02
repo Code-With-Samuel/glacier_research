@@ -1,0 +1,4 @@
+# Methodology audit
+Final experiment = supervised_learning_for_classification.ipynb (spatial group CV). Dataset: hkh_glacier_mass_change_era5land_hydrological_year_eda.csv (23,698 x 46; 697 cells; HY1991-2024). Target: 3 classes at +/-0.1 m w.e. Predictors: 17. Folds: StratifiedGroupKFold k=5, shuffle, seed 42; 25 K-means clusters (n_init 20, seed 42). Models: LR, RF, SVM-RBF, GB; 21 configs / 105 fits; selection = mean val macro-F1. Weights computed on training folds only. No resampling. Final model refit on all rows is NOT an evaluation.
+Superseded/other experiments: Nepal-only blueprint (2,108 rows, 1,984 matched, 124 excluded) superseded by HKH table (23,698 rows, 0 excluded, replacement instead of exclusion). Random-split/StratifiedKFold workflow removed from the notebook.
+Checks reproduced from the CSV: 23,698 rows, 697 cells, class counts 15,344/4,976/3,378 (sum 23,698); m w.e. = Gt/(rho*area) to rounding; confusion matrices sum to supports.

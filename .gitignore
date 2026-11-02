@@ -23,4 +23,5 @@ Thumbs.db
 # Dataset folders
 datasets/
 datasets_to_csv/
-processed_data
+processed_data/**
+!processed_data/hkh_glacier_mass_change_era5land_hydrological_year_eda.csv
