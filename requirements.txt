@@ -2,6 +2,7 @@ numpy
 pandas
 matplotlib
 seaborn
+plotly
 ipykernel
 geopandas
 xarray
@@ -9,5 +10,10 @@ netCDF4
 folium
 branca
 ipython
-scikit-learn
+scikit-learn==1.6.1
 geodatasets
+streamlit
+joblib
+folium
+streamlit-folium
+branca
