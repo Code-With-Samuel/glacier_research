@@ -2,9 +2,9 @@
 
 Research code and data-processing notebooks for preparing a Hindu Kush Himalaya
 (HKH) glacier mass-change dataset, integrating ERA5-Land climate predictors,
-exploring the data, and evaluating spatially grouped classification models. The
-repository also contains a local Streamlit dashboard and the scripts used to
-generate the paper figures.
+exploring the data, and evaluating classification models under both spatially
+grouped and chronological validation. The repository also contains a local
+Streamlit dashboard and the scripts used to generate the paper figures.
 
 The research paper is in
 [`research_paper/final_research_paper.tex`](research_paper/final_research_paper.tex).
@@ -25,6 +25,7 @@ glacier_research/
 ├── hkh_glacier_mass_change_era5land_integration.ipynb
 ├── glacier_eda_hkh.ipynb
 ├── supervised_learning_for_classification.ipynb
+├── glacier_mass_change_integrated_hkh_ml.ipynb
 ├── datasets/                                   # raw inputs (gitignored)
 │   ├── copernicus_wgms_gridded_mass_change/
 │   ├── era5_land_nepal_climate_1990-2026/
@@ -40,6 +41,11 @@ glacier_research/
 ├── spatial_cv_outputs/                         # model and evaluation artifacts
 │   ├── hkh_glacier_spatial_cv_selected_model.joblib
 │   └── spatial_cv_*.csv
+├── glacier_classification_outputs/             # chronological-model artifacts
+│   ├── selected_hkh_glacier_mass_change_classifier.joblib
+│   ├── selected_model_metadata.json
+│   ├── *.csv
+│   └── figures/
 ├── hkh_glacier_application/                    # Streamlit dashboard
 │   ├── app.py
 │   ├── README.md
@@ -78,6 +84,11 @@ python -m ipykernel install --user --name glacier-research --display-name "Pytho
 `requirements.txt` pins scikit-learn 1.6.1 because the saved model artifact was
 created with that version.
 
+`glacier_mass_change_integrated_hkh_ml.ipynb` also requires `xgboost` and
+`imbalanced-learn`, which are not pinned in `requirements.txt`. Install them into
+the same environment (`python -m pip install xgboost imbalanced-learn`) or use
+the notebook's dependency cell.
+
 If PowerShell prevents environment activation, either adjust the user execution
 policy according to your organization's guidance or invoke the environment's
 Python directly as `.\.venv\Scripts\python.exe`.
@@ -109,6 +120,7 @@ provided in the following subsections.
 | `hkh_glacier_mass_change_era5land_integration.ipynb` | Perform source-data checks, conservative regridding, monthly and April-March hydrological-year aggregation, replacement auditing, integration, and exports. | `processed_data/hkh_glacier_mass_change_era5land_hydrological_year_eda.csv` plus diagnostic CSVs |
 | `glacier_eda_hkh.ipynb` | Explore the integrated HKH table, its quality, spatial/temporal patterns, and relationships. | Reads the integrated CSV; includes interactive Folium visualizations |
 | `supervised_learning_for_classification.ipynb` | Build three mass-change classes and compare four classifiers with five-fold spatially grouped validation. | Reads the integrated CSV; writes model and evaluation artifacts to `spatial_cv_outputs/` |
+| `glacier_mass_change_integrated_hkh_ml.ipynb` | Run unified chronological hyperparameter tuning over four algorithms and imbalance settings, then evaluate on an untouched 2020-2024 holdout. | Reads `processed_glacier_data.csv`; writes reports, figures, and model artifacts to `glacier_classification_outputs/` |
 
 The integration workflow streams the large ERA5-Land CSV in chunks. The source
 CSV is about 9.5 GB in the current dataset; allow substantial free disk space
@@ -215,6 +227,49 @@ The notebook performs K-means clustering on unique locations and spatial
 not a strict geographic buffer. The final model refitted on all observations is
 an export artifact, not an independent performance evaluation.
 
+### 7. `glacier_mass_change_integrated_hkh_ml.ipynb`
+
+**Prerequisite:** a prepared dataset named `processed_glacier_data.csv`
+containing `mass_change_class`, `glacier_mass_change_mwe`, `hydrological_year`,
+`target_latitude`, and `target_longitude`. Place it beside the notebook or set
+`DATA_PATH` in the configuration cell. This file is a separate supplied input;
+it is not produced by the integration notebook above unless the integrated table
+has first been extended with the required class column. The notebook retains all
+697 HKH grid locations and raises an explicit error if the file or any required
+column is missing.
+
+**Run:** open the notebook from the repository root and run all cells. The full
+search is computationally expensive. With the default `N_ITER = 4`, the notebook
+evaluates 4 algorithms × 4 imbalance settings × 4 sampled configurations = 64
+candidates on the shared expanding-window folds, then refits each of the 16
+combination winners. Increase `N_ITER` for a broader search and reduce it only
+for a quick smoke test.
+
+**Design:** hydrological years before 2020 form the development period and
+2020-2024 is an untouched test period. Every candidate uses identical
+expanding-window chronological folds. Models are selected only by mean
+validation macro F1, with balanced accuracy and accuracy as tie-breakers; test
+metrics are reported but never used for selection. Undersampling and class
+weighting are applied only to training data.
+
+**Outputs:** in `glacier_classification_outputs/`:
+
+- `all_candidate_validation_results.csv` and `all_candidate_fold_metrics.csv`
+- `best_of_16_configurations_validation.csv`
+- `train_vs_validation_metrics.csv`
+- `final_test_metrics_all_16.csv`
+- `test_classification_reports.csv`
+- `test_roc_auc_by_class.csv`
+- `expanding_window_fold_schedule.csv`
+- `selected_hkh_glacier_mass_change_classifier.joblib`
+- `selected_model_metadata.json`
+- `figures/` with train-vs-validation, confusion-matrix, ROC, and comparison plots
+
+The holdout evaluates future-year performance at grid locations represented in
+the data, not transfer to unseen locations. Some test-period classes may have
+too few observations for defined ROC curves; the notebook reports these as
+undefined rather than substituting a score.
+
 ## How to run the paper figure scripts
 
 Run the scripts from the repository root after preparing the integrated CSV.
@@ -315,6 +370,7 @@ follow their citation and attribution terms.
 | Converted ERA5-Land CSVs used by integration | `datasets_to_csv/era5_land_nepal_climate_1990-2026_csv/` |
 | Combined corrected monthly ERA5-Land CSV | `datasets_to_csv/corrected_era5_land_data/combined_corrected_data.csv` |
 | Combined gridded mass-change CSV | `datasets_to_csv/copernicus_wgms_gridded_mass_change_csv/nepal_glacier_data_1990-2024.csv` |
+| Prepared HKH classification table for chronological tuning (supplied input, not generated by the pipeline) | `processed_glacier_data.csv` at the repository root, or the path set as `DATA_PATH` |
 | Selected model artifact for the dashboard (generated by the modeling notebook) | `spatial_cv_outputs/hkh_glacier_spatial_cv_selected_model.joblib` |
 
 ### Path configuration
@@ -333,6 +389,9 @@ to the corresponding local folders before running:
   `ERA5_PATH`, `CORRECTED_PATH`, and `OUTPUT_DIR`.
 - `glacier_eda_hkh.ipynb` and `supervised_learning_for_classification.ipynb`:
   `DATA_PATH`.
+- `glacier_mass_change_integrated_hkh_ml.ipynb`: `DATA_PATH` (defaults to
+  `processed_glacier_data.csv` beside the notebook). The output directory is
+  `glacier_classification_outputs/`, created automatically.
 - `hkh_glacier_application/app.py`: paths are derived from the script location,
   so no edits are needed as long as `hkh_glacier_application/` remains inside the
   repository and the two input files stay in `processed_data/` and
@@ -365,13 +424,17 @@ and are not an input to the glacier mass-change pipeline described here.
    diagnostics before using the exported annual table.
 5. **Explore and model.** Run `glacier_eda_hkh.ipynb`, then
    `supervised_learning_for_classification.ipynb`.
-6. **Regenerate paper graphics.** Run `make_figs.py`, `make_diag.py`, and, after
+6. **Run the chronological model (optional, separate input).** Place
+   `processed_glacier_data.csv` and run
+   `glacier_mass_change_integrated_hkh_ml.ipynb`. This workflow is independent of
+   `spatial_cv_outputs/` and writes to `glacier_classification_outputs/`.
+7. **Regenerate paper graphics.** Run `make_figs.py`, `make_diag.py`, and, after
    the modeling notebook has produced `spatial_cv_outputs/`,
    `make_results_figs.py`.
-7. **Launch the dashboard (optional).** Confirm the integrated CSV and model
+8. **Launch the dashboard (optional).** Confirm the integrated CSV and model
    artifact exist, then run the Streamlit command in
    [How to run the dashboard](#how-to-run-the-dashboard).
-8. **Compile the paper.** Use the LaTeX commands in
+9. **Compile the paper.** Use the LaTeX commands in
    [Compile the paper](#compile-the-paper).
 
 Do not rerun an upstream conversion if its existing output is the intended input
@@ -404,6 +467,10 @@ references, or bibliography entries.
 - Spatial validation keeps each K-means location cluster in one fold. This
   evaluates transfer across clusters, not forecasting future years at known
   locations; cluster boundaries are not a distance buffer.
+- The chronological notebook instead holds out 2020-2024 and uses
+  expanding-window folds before 2020. That evaluates future-year performance at
+  represented locations, not geographic transfer; spatial autocorrelation may
+  make its row-level metrics optimistic.
 - The final model refitted on all observations is an export artifact, not an
   independent performance evaluation.
 - The paper documents unresolved ERA5-Land recovery semantics and other
