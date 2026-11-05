@@ -1,0 +1,15 @@
+\begin{tikzpicture}[x=1cm,y=1cm]
+\node[cvbox=cvRed,text width=2.15cm,minimum height=1.0cm] (loc) at (1.5,0.2) {697 grid-cell locations\\(latitude, longitude)};
+\node[cvbox=cvOrange,text width=1.9cm,minimum height=1.0cm] (km) at (4.7,0.2) {K-means grouping\\$k=25$, seed 42};
+\draw[cvarr] (loc.east) -- (km.west);
+\node[font=\small,align=center] at (8.1,1.35) {StratifiedGroupKFold\\5 validation folds};
+\draw[cvarr] (km.east) -- (6.5,0.2) -- (6.5,0.95) -- (7.0,0.95);
+\foreach \i/\col/\nval in {1/cvRed/5,2/cvOrange/5,3/cvGreen/4,4/cvBlue/6,5/cvViolet/5}{
+  \pgfmathsetmacro{\yy}{0.65-0.48*\i}
+  \node[font=\scriptsize,anchor=east] at (7.45,\yy+0.15) {Fold \i};
+  \fill[\col!20] (7.55,\yy) rectangle (10.9,\yy+0.30);
+  \draw[\col!85!black,thick] (7.55,\yy) rectangle (10.9,\yy+0.30);
+  \node[font=\scriptsize,align=center] at (9.2,\yy+0.15) {\nval\ validation clusters};
+}
+\node[font=\footnotesize,align=center] at (9.2,-2.05) {25 clusters assigned once across the five folds};
+\end{tikzpicture}

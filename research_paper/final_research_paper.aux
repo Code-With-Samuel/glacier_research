@@ -1,0 +1,231 @@
+\relax 
+\citation{hugonnet2021,miles2021,bhattacharya2021,barandun2021}
+\citation{rounce2023}
+\citation{khadka2023,stumm2021}
+\citation{wgmsgrid,dussaillant2024}
+\citation{era5landpaper,era5land}
+\citation{gurung2025,khadka2023,anilkumar2023}
+\citation{ecmwfissue}
+\citation{hugonnet2021}
+\citation{miles2021,bhattacharya2021,barandun2021}
+\citation{rounce2023}
+\citation{khadka2023,stumm2021}
+\citation{mehta2021,zhang2021}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {II}Related Work and Research Gap}{1}{}\protected@file@percent }
+\newlabel{sec:related}{{II}{1}{}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}Glacier change and regional evidence}{1}{}\protected@file@percent }
+\citation{anilkumar2023}
+\citation{gurung2025}
+\citation{ren2024,peng2025}
+\citation{peng2025}
+\citation{xu2025}
+\citation{vanmeer2025}
+\citation{sjursen2025}
+\citation{roberts2017,meyer2021,wadoux2021}
+\citation{gurung2025}
+\citation{khadka2023}
+\citation{anilkumar2023}
+\citation{anilkumar2023,gurung2025,khadka2023}
+\citation{wgmsgrid,dussaillant2024}
+\citation{wgmsgrid}
+\citation{era5land,era5landpaper}
+\citation{ecmwfissue}
+\citation{wgmsgrid}
+\citation{era5land,era5landpaper}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Machine learning for glacier mass balance}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}Comparison with the three base papers}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-D}}The research gap}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {III}Blueprint Audit: Planned Commitment, Executed Treatment, and Status}{2}{}\protected@file@percent }
+\newlabel{sec:blueprint}{{III}{2}{}{section.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Study Area and Data Sources}{2}{}\protected@file@percent }
+\newlabel{sec:data}{{IV}{2}{}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Study area}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Datasets}{2}{}\protected@file@percent }
+\citation{wgmsgrid}
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Research-gap comparison between the three mandatory base papers and the present study.}}{3}{}\protected@file@percent }
+\newlabel{tab:gap}{{I}{3}{}{table.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Study area. (a) Mean specific mass change per $0.5^\circ $ target cell, 1991--2024. (b) Number of hydrological years (of 34) in which each cell is classed as mass loss. Cells are drawn as $0.5^\circ $ squares over Natural Earth country outlines; the green shaded envelope is a smoothed outline of the 697 occupied cells and is not an official HKH boundary.}}{3}{}\protected@file@percent }
+\newlabel{fig:map}{{1}{3}{}{figure.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Data Processing and Feature Engineering}{3}{}\protected@file@percent }
+\newlabel{sec:processing}{{V}{3}{}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Hydrological-year convention}{3}{}\protected@file@percent }
+\newlabel{eq:hy}{{1}{3}{}{equation.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Spatial alignment of ERA5-Land with the target grid}{3}{}\protected@file@percent }
+\citation{ecmwfissue}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Blueprint audit: planned commitment, executed treatment in this paper, and evidence-based status.}}{4}{}\protected@file@percent }
+\newlabel{tab:fidelity}{{II}{4}{}{table.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Predictors and aggregation rules}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-D}}The September 2022--February 2024 ERA5-Land issue}{4}{}\protected@file@percent }
+\newlabel{sec:issue}{{\mbox  {V-D}}{4}{}{subsection.5.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Datasets, roles and sources. Resolutions are those stated in the cited documentation or observed in the prepared files.}}{5}{}\protected@file@percent }
+\newlabel{tab:datasets}{{III}{5}{}{table.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Predictors, physical meaning, source units and annual operation as implemented in the integration notebook. Values in the last column are table means over all 23,698 records.}}{5}{}\protected@file@percent }
+\newlabel{tab:vars}{{IV}{5}{}{table.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-E}}Resulting modelling table}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Problem Formulation}{5}{}\protected@file@percent }
+\newlabel{sec:problem}{{VI}{5}{}{section.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Pearson correlation among the 17 predictors and the continuous target (last row and column), pooled over all records. Each cell is annotated with the signed Pearson coefficient $r$ (two decimals); larger $|r|$ indicates stronger linear association. Collinearity is high within the snow, runoff and radiation groups.}}{6}{}\protected@file@percent }
+\newlabel{fig:corr}{{2}{6}{}{figure.2}{}}
+\newlabel{eq:classes}{{2}{6}{}{equation.2}{}}
+\newlabel{eq:erm}{{3}{6}{}{equation.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Methodology}{6}{}\protected@file@percent }
+\newlabel{sec:method}{{VII}{6}{}{section.7}{}}
+\citation{cortes1995}
+\citation{breiman2001}
+\citation{friedman2001}
+\citation{lloyd1982}
+\citation{pedregosa2011}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-A}}Classifiers}{7}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-B}}Preprocessing and class-imbalance handling}{7}{}\protected@file@percent }
+\newlabel{eq:scale}{{4}{7}{}{equation.4}{}}
+\newlabel{eq:cw}{{5}{7}{}{equation.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-C}}Spatially grouped validation}{7}{}\protected@file@percent }
+\newlabel{eq:kmeans}{{6}{7}{}{equation.6}{}}
+\citation{chang2011}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Executed project workflow from source products to the Streamlit application. The figure includes only stages documented in the supplied notebooks, README and application source.}}{8}{}\protected@file@percent }
+\newlabel{fig:methodflow}{{3}{8}{}{figure.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Spatial cross-validation design reproduced from the executed notebook: the 697 coordinate locations are grouped into 25 K-means clusters, and complete clusters are assigned to five validation folds. The folds contain 5, 5, 4, 6 and 5 validation clusters, respectively. This is cluster-based separation, not a geographic buffer.}}{8}{}\protected@file@percent }
+\newlabel{fig:spatialcv}{{4}{8}{}{figure.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces K-means groups of the 697 grid locations (25 clusters, standardised coordinates). The colour map repeats across clusters, so adjacent clusters can share a colour. Groups prevent a location or cluster from crossing a fold; they are not buffered geographic blocks.}}{8}{}\protected@file@percent }
+\newlabel{fig:clusters}{{5}{8}{}{figure.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-D}}Computational complexity}{8}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces Spatial fold composition (from the validation notebook).}}{8}{}\protected@file@percent }
+\newlabel{tab:folds}{{V}{8}{}{table.5}{}}
+\citation{sokolova2009}
+\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces Theoretical computational complexity of the algorithms in the final methodology, with symbols defined in the text. Assumptions: dense data, no parallelism, tree split search by sorting, and pairwise SVM decomposition.}}{9}{}\protected@file@percent }
+\newlabel{tab:complexity}{{VI}{9}{}{table.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-E}}Evaluation metrics}{9}{}\protected@file@percent }
+\newlabel{eq:prf}{{7}{9}{}{equation.7}{}}
+\newlabel{eq:f1}{{8}{9}{}{equation.8}{}}
+\newlabel{eq:macro}{{9}{9}{}{equation.9}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {VIII}Experimental Design}{9}{}\protected@file@percent }
+\newlabel{sec:design}{{VIII}{9}{}{section.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VIII-A}}Target distribution}{9}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {VII}{\ignorespaces Target-class distribution under Eq.~\eqref  {eq:classes}.}}{9}{}\protected@file@percent }
+\newlabel{tab:classes}{{VII}{9}{}{table.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VIII-B}}Label uncertainty}{9}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VIII-C}}Hyperparameter search and selection}{9}{}\protected@file@percent }
+\citation{wolpert1997}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Problem statement. (a) Annual mass change is heterogeneous across cells: the band spans the 10th to 90th percentile and the shaded strip marks the near-balance interval. (b) The three classes are unequally represented. (c) The class mix shifts over time, with gain and near-balance cells almost absent in 2022--2024, so a model trained on all years faces a changing distribution.}}{10}{}\protected@file@percent }
+\newlabel{fig:problem}{{6}{10}{}{figure.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Cells per class and hydrological year (697 cells per year). The scarcity of gain and near-balance cells after 2021 illustrates temporal distribution shift.}}{10}{}\protected@file@percent }
+\newlabel{fig:perYear}{{7}{10}{}{figure.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {VIII}{\ignorespaces Search grids and selected configurations (21 candidates, 105 fits).}}{10}{}\protected@file@percent }
+\newlabel{tab:params}{{VIII}{10}{}{table.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VIII-D}}Reporting protocol}{10}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {IX}Results}{10}{}\protected@file@percent }
+\newlabel{sec:results}{{IX}{10}{}{section.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-A}}Model comparison}{10}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Target and label uncertainty. (a) Distribution of specific mass change with the near-balance band shaded. (b) Distribution of reported uncertainty with the class half-width marked. (c) Mass change against reported uncertainty for 4,000 random records; many records fall inside the shaded band with uncertainty above the 0.1 line.}}{11}{}\protected@file@percent }
+\newlabel{fig:uncert}{{8}{11}{}{figure.8}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {IX}{\ignorespaces Pooled spatial OOF metrics for each selected classifier. Selection-fold diagnostics, not independent test scores.}}{11}{}\protected@file@percent }
+\newlabel{tab:oof}{{IX}{11}{}{table.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Pooled spatial OOF accuracy, balanced accuracy, macro-F1 and macro ROC-AUC for the four classifiers. The dotted line marks the all-loss accuracy.}}{11}{}\protected@file@percent }
+\newlabel{fig:mc}{{9}{11}{}{figure.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-B}}Class-wise performance}{11}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {X}{\ignorespaces Best configuration per family under five-fold spatial-group validation (mean over folds; SD of macro-F1 over the five folds).}}{11}{}\protected@file@percent }
+\newlabel{tab:fold}{{X}{11}{}{table.10}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Validation macro-F1 in each of the five spatial folds for the selected configurations (dots), with fold means (bars) and lines connecting the same fold across models. Fold ordering of the models is stable even though the absolute level changes.}}{11}{}\protected@file@percent }
+\newlabel{fig:folds}{{10}{11}{}{figure.10}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {XI}{\ignorespaces Pooled spatial OOF class-wise precision, recall and F1 of all four classifiers.}}{12}{}\protected@file@percent }
+\newlabel{tab:class}{{XI}{12}{}{table.11}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {XII}{\ignorespaces Measured wall-clock cost from the logged search (indicative; unspecified hosted hardware).}}{12}{}\protected@file@percent }
+\newlabel{tab:cost}{{XII}{12}{}{table.12}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-C}}ROC analysis}{12}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-D}}Training versus validation and hyperparameter sensitivity}{12}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-E}}Computational cost}{12}{}\protected@file@percent }
+\newlabel{sec:cost}{{\mbox  {IX-E}}{12}{}{subsection.9.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-F}}Predictor behaviour by class}{12}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-G}}A diagnostic on replaced ERA5-Land months}{12}{}\protected@file@percent }
+\newlabel{sec:diag}{{\mbox  {IX-G}}{12}{}{subsection.9.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-H}}Supplementary chronological imbalance experiment}{12}{}\protected@file@percent }
+\citation{anilkumar2023}
+\citation{gurung2025,peng2025,sjursen2025}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Pooled spatial OOF confusion matrices. Cells show counts and the row-normalised share of each true class. Counts were read from the validation notebook output and each matrix sums to the class supports in Table~\ref {tab:class}.}}{13}{}\protected@file@percent }
+\newlabel{fig:cm}{{11}{13}{}{figure.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Class-wise precision, recall and F1 for the four classifiers. Near balance is the weakest class for every model, and precision is the weakest component for that class.}}{13}{}\protected@file@percent }
+\newlabel{fig:pc}{{12}{13}{}{figure.12}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {X}Discussion}{13}{}\protected@file@percent }
+\newlabel{sec:discussion}{{X}{13}{}{section.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {X-A}}What the evidence supports}{13}{}\protected@file@percent }
+\citation{anilkumar2023}
+\@writefile{lot}{\contentsline {table}{\numberline {XIII}{\ignorespaces Chronological experiment: best validation-ranked model configuration within each imbalance strategy.}}{14}{}\protected@file@percent }
+\newlabel{tab:imbalance}{{XIII}{14}{}{table.13}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces One-vs-rest ROC curves from pooled spatial OOF scores for Gradient Boosting (notebook output).}}{14}{}\protected@file@percent }
+\newlabel{fig:roc}{{13}{14}{}{figure.13}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces Class-wise one-vs-rest ROC-AUC for all classifiers. The dotted line marks chance (0.5); near-balance AUC for SVM and Logistic Regression is only 0.58--0.59.}}{14}{}\protected@file@percent }
+\newlabel{fig:auc}{{14}{14}{}{figure.14}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces Mean training and validation macro-F1 and accuracy over five spatial folds for the selected configurations. Labels show the training minus validation difference.}}{14}{}\protected@file@percent }
+\newlabel{fig:tv}{{15}{14}{}{figure.15}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {X-B}}Why the weakest model is weak, and why boosting is strongest}{14}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {X-C}}Near balance is a label problem as much as a model problem}{14}{}\protected@file@percent }
+\citation{wadoux2021}
+\citation{meyer2021}
+\@writefile{lof}{\contentsline {figure}{\numberline {16}{\ignorespaces Hyperparameter sensitivity of mean validation macro-F1. (a) The eight Gradient Boosting configurations; the best lies at the upper edge of the grid. (b) The eight Random Forest configurations, with training and validation scores; unlimited depth reproduces the training data but not the validation clusters.}}{15}{}\protected@file@percent }
+\newlabel{fig:hp}{{16}{15}{}{figure.16}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {17}{\ignorespaces Performance versus logged cost: pooled OOF macro-F1 against mean wall-clock time per fit (log scale). Times come from one run on unspecified hardware.}}{15}{}\protected@file@percent }
+\newlabel{fig:cost}{{17}{15}{}{figure.17}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {X-D}}Spatial validation: what it does and does not show}{15}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {X-E}}Implications for HKH monitoring}{15}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {X-F}}Relation to the blueprint}{15}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {XI}Threats to Validity and Limitations}{15}{}\protected@file@percent }
+\newlabel{sec:threats}{{XI}{15}{}{section.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {18}{\ignorespaces Distribution of annual 2-m temperature, snow cover and snowmelt by target class (outliers hidden). Distributions overlap strongly, so no single predictor separates the classes.}}{16}{}\protected@file@percent }
+\newlabel{fig:pred}{{18}{16}{}{figure.18}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {19}{\ignorespaces Grid-mean annual (a) 2-m temperature, (b) 10-m zonal wind and (c) total precipitation by hydrological year. The shaded red band marks the two years that contain replaced months; the grey band is the 1991--2021 mean $\pm 2$ standard deviations.}}{16}{}\protected@file@percent }
+\newlabel{fig:disc}{{19}{16}{}{figure.19}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {20}{\ignorespaces Validation and 2020--2024 test macro-F1 for the best validation-ranked model within each chronological imbalance strategy. The algorithm differs between strategies; this is not a controlled estimate of the isolated treatment effect.}}{16}{}\protected@file@percent }
+\newlabel{fig:imbalance}{{20}{16}{}{figure.20}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {XII}Conclusion and Future Work}{16}{}\protected@file@percent }
+\newlabel{sec:conclusion}{{XII}{16}{}{section.12}{}}
+\bibstyle{IEEEtran}
+\bibdata{references}
+\bibcite{hugonnet2021}{1}
+\bibcite{miles2021}{2}
+\bibcite{bhattacharya2021}{3}
+\bibcite{barandun2021}{4}
+\bibcite{rounce2023}{5}
+\bibcite{khadka2023}{6}
+\bibcite{stumm2021}{7}
+\bibcite{wgmsgrid}{8}
+\bibcite{dussaillant2024}{9}
+\bibcite{era5landpaper}{10}
+\bibcite{era5land}{11}
+\bibcite{gurung2025}{12}
+\bibcite{anilkumar2023}{13}
+\bibcite{ecmwfissue}{14}
+\bibcite{mehta2021}{15}
+\bibcite{zhang2021}{16}
+\bibcite{ren2024}{17}
+\bibcite{peng2025}{18}
+\bibcite{xu2025}{19}
+\@writefile{lot}{\contentsline {table}{\numberline {XIV}{\ignorespaces Threats to validity, evidence in this study and resolving action.}}{17}{}\protected@file@percent }
+\newlabel{tab:threats}{{XIV}{17}{}{table.14}{}}
+\@writefile{toc}{\contentsline {section}{References}{17}{}\protected@file@percent }
+\bibcite{vanmeer2025}{20}
+\bibcite{sjursen2025}{21}
+\bibcite{roberts2017}{22}
+\bibcite{meyer2021}{23}
+\bibcite{wadoux2021}{24}
+\bibcite{cortes1995}{25}
+\bibcite{breiman2001}{26}
+\bibcite{friedman2001}{27}
+\bibcite{lloyd1982}{28}
+\bibcite{pedregosa2011}{29}
+\bibcite{chang2011}{30}
+\bibcite{sokolova2009}{31}
+\bibcite{wolpert1997}{32}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  A: Supplementary Part I: Code and Reproducibility}{19}{}\protected@file@percent }
+\newlabel{app:code}{{A}{19}{}{section.Appendix.A}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  B: Supplementary Part II: Streamlit Application Demonstration}{19}{}\protected@file@percent }
+\newlabel{app:application}{{B}{19}{}{section.Appendix.B}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {21}{\ignorespaces Placeholder for a reproducibility-oriented code screenshot. Replace with an authentic notebook capture.}}{20}{}\protected@file@percent }
+\newlabel{fig:code-placeholder}{{21}{20}{}{figure.21}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {22}{\ignorespaces Placeholder for the Streamlit overview page. Replace with an authentic application screenshot.}}{20}{}\protected@file@percent }
+\newlabel{fig:app-overview-placeholder}{{22}{20}{}{figure.22}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {23}{\ignorespaces Placeholder for the Streamlit geographic explorer. Replace with an authentic application screenshot.}}{20}{}\protected@file@percent }
+\newlabel{fig:app-map-placeholder}{{23}{20}{}{figure.23}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {24}{\ignorespaces Placeholder for the Streamlit prediction laboratory. Replace with an authentic application screenshot.}}{20}{}\protected@file@percent }
+\newlabel{fig:app-prediction-placeholder}{{24}{20}{}{figure.24}{}}
+\gdef \@abspage@last{20}
