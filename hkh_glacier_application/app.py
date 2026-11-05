@@ -132,71 +132,130 @@ with st.sidebar:
 
 # Apply the selected theme without changing the dashboard's layout or content.
 plotly_template = "plotly_dark" if dark_mode else "plotly_white"
+
+
 if dark_mode:
     st.markdown("""
     <style>
-    /* Main canvas and readable default text */
-    .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"],
+    /* =====================================================
+       DARK MODE — MAIN CANVAS
+    ===================================================== */
+
+    .stApp,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMain"],
     [data-testid="stMainBlockContainer"] {
         background: #101923 !important;
         color: #E8EEF5 !important;
     }
-    .block-container { color: #E8EEF5 !important; }
-    .stApp, .stApp p, .stApp li, .stApp label, .stApp small,
+
+    .block-container {
+        color: #E8EEF5 !important;
+    }
+
+    .stApp p,
+    .stApp li,
+    .stApp label,
+    .stApp small,
     .stApp [data-testid="stMarkdownContainer"],
     .stApp [data-testid="stCaptionContainer"] {
         color: #DCE5EF;
     }
-    .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
-    .section-title { color: #F2F6FA !important; }
-    .subtle, [data-testid="stCaptionContainer"] {
+
+    .stApp h1,
+    .stApp h2,
+    .stApp h3,
+    .stApp h4,
+    .stApp h5,
+    .stApp h6,
+    .section-title {
+        color: #F2F6FA !important;
+    }
+
+    .subtle,
+    [data-testid="stCaptionContainer"] {
         color: #A9B8C8 !important;
     }
 
-    /* Sidebar */
+    /* =====================================================
+       SIDEBAR
+    ===================================================== */
+
     [data-testid="stSidebar"] {
         background: #0B1420 !important;
         border-right: 1px solid #263648;
     }
-    [data-testid="stSidebar"] * { color: #E5EDF5 !important; }
+
+    [data-testid="stSidebar"] * {
+        color: #E5EDF5 !important;
+    }
+
     [data-testid="stSidebar"] [data-testid="stCaptionContainer"] {
         color: #A9B8C8 !important;
     }
 
-    /* KPI cards and native metric cards */
-    .kpi, div[data-testid="stMetric"] {
+    /* =====================================================
+       KPI CARDS AND METRICS
+    ===================================================== */
+
+    .kpi,
+    div[data-testid="stMetric"] {
         background: #1B2A3A !important;
         border: 1px solid #34485D !important;
+        border-radius: 13px !important;
         box-shadow: 0 5px 18px rgba(0,0,0,.18) !important;
     }
-    .kpi-label, div[data-testid="stMetric"] label,
+
+    .kpi-label,
+    div[data-testid="stMetric"] label,
     div[data-testid="stMetric"] [data-testid="stMetricLabel"] {
         color: #B8C7D6 !important;
     }
-    .kpi-value, div[data-testid="stMetric"] [data-testid="stMetricValue"] {
+
+    .kpi-value,
+    div[data-testid="stMetric"] [data-testid="stMetricValue"] {
         color: #F4F7FB !important;
     }
-    .kpi-note { color: #A9B8C8 !important; }
 
-    /* Tabs */
-    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
+    .kpi-note {
+        color: #A9B8C8 !important;
+    }
+
+    /* =====================================================
+       TABS
+    ===================================================== */
+
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+
     .stTabs [data-baseweb="tab"] {
         background: #1B2A3A !important;
         color: #C8D4E0 !important;
         border: 1px solid #34485D !important;
         border-bottom: 0 !important;
+        border-radius: 9px 9px 0 0 !important;
+        transition: background .2s ease, color .2s ease;
     }
+
     .stTabs [data-baseweb="tab"]:hover {
         background: #26394D !important;
         color: #FFFFFF !important;
     }
+
     .stTabs [aria-selected="true"] {
         background: #29445B !important;
         color: #FFFFFF !important;
     }
-    .stTabs [data-baseweb="tab-highlight"] { background: #55B6A8 !important; }
 
-    /* Text inputs, number inputs, dropdowns and multi-selects */
+    .stTabs [data-baseweb="tab-highlight"] {
+        background: #55B6A8 !important;
+    }
+
+    /* =====================================================
+       INPUTS AND DROPDOWNS
+    ===================================================== */
+
     [data-baseweb="input"] > div,
     [data-baseweb="textarea"] > div,
     [data-baseweb="select"] > div,
@@ -206,6 +265,7 @@ if dark_mode:
         color: #F0F4F8 !important;
         border-color: #52677D !important;
     }
+
     [data-baseweb="input"] input,
     [data-baseweb="textarea"] textarea,
     [data-baseweb="select"] input {
@@ -213,67 +273,201 @@ if dark_mode:
         -webkit-text-fill-color: #F0F4F8 !important;
         caret-color: #FFFFFF !important;
     }
+
     [data-baseweb="input"] input::placeholder,
     [data-baseweb="textarea"] textarea::placeholder {
         color: #A9B8C8 !important;
         -webkit-text-fill-color: #A9B8C8 !important;
     }
-    [data-baseweb="select"] svg { fill: #DCE5EF !important; }
-    [data-baseweb="popover"], [data-baseweb="menu"],
-    [role="listbox"], [role="option"] {
+
+    [data-baseweb="select"] svg {
+        fill: #DCE5EF !important;
+    }
+
+    [data-baseweb="popover"],
+    [data-baseweb="menu"],
+    [role="listbox"],
+    [role="option"] {
         background: #1B2A3A !important;
         color: #E8EEF5 !important;
     }
-    [role="option"]:hover, [aria-selected="true"][role="option"] {
+
+    [role="option"]:hover,
+    [aria-selected="true"][role="option"] {
         background: #304A62 !important;
         color: #FFFFFF !important;
     }
 
-    /* Buttons and interactive controls */
-    .stButton > button, .stDownloadButton > button,
+    /* =====================================================
+       BUTTONS AND INTERACTIVE CONTROLS
+    ===================================================== */
+
+    .stButton > button,
+    .stDownloadButton > button,
     [data-testid="stFormSubmitButton"] > button {
         background: #245A66 !important;
         color: #FFFFFF !important;
         border: 1px solid #4C8790 !important;
+        border-radius: 9px !important;
+        transition: all .2s ease !important;
     }
-    .stButton > button:hover, .stDownloadButton > button:hover,
+
+    .stButton > button:hover,
+    .stDownloadButton > button:hover,
     [data-testid="stFormSubmitButton"] > button:hover {
         background: #317783 !important;
         color: #FFFFFF !important;
         border-color: #75B8B8 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(49,119,131,.25);
     }
-    [data-testid="stCheckbox"] label, [data-testid="stRadio"] label,
-    [data-testid="stToggle"] label, [data-testid="stSlider"] label {
+
+    [data-testid="stCheckbox"] label,
+    [data-testid="stRadio"] label,
+    [data-testid="stToggle"] label,
+    [data-testid="stSlider"] label {
         color: #E1E9F1 !important;
     }
+
     [data-testid="stSlider"] [role="slider"] {
         background: #67C5B5 !important;
         border-color: #67C5B5 !important;
     }
 
-    /* Expanders, alerts and separators */
+    /* =====================================================
+       PREMIUM EXPANDER — HOVER AND EXPANDED STATES
+    ===================================================== */
+
     [data-testid="stExpander"] {
         background: #182636 !important;
         border: 1px solid #34485D !important;
-        border-radius: 10px !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        transition:
+            border-color .22s ease,
+            box-shadow .22s ease,
+            background .22s ease !important;
     }
-    [data-testid="stExpander"] summary,
-    [data-testid="stExpander"] summary span {
+
+    /* Header */
+    [data-testid="stExpander"] details > summary {
+        background: #1B2A3A !important;
         color: #E8EEF5 !important;
+        padding: 14px 17px !important;
+        cursor: pointer !important;
+        border-radius: 11px !important;
+        transition:
+            background .22s ease,
+            color .22s ease !important;
     }
+
+    /* Hover header */
+    [data-testid="stExpander"] details > summary:hover {
+        background: #263B4E !important;
+        color: #FFFFFF !important;
+    }
+
+    /* Header text */
+    [data-testid="stExpander"] details > summary p,
+    [data-testid="stExpander"] details > summary span,
+    [data-testid="stExpander"] details > summary
+    [data-testid="stMarkdownContainer"] * {
+        color: #DCE7F1 !important;
+        -webkit-text-fill-color: #DCE7F1 !important;
+        transition: color .22s ease !important;
+    }
+
+    /* Hover text */
+    [data-testid="stExpander"] details > summary:hover p,
+    [data-testid="stExpander"] details > summary:hover
+    [data-testid="stMarkdownContainer"] * {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+    /* Arrow icon */
+    [data-testid="stExpander"] details > summary svg,
+    [data-testid="stExpander"] details > summary
+    [data-testid="stIconMaterial"] {
+        color: #8FA8BB !important;
+        fill: #8FA8BB !important;
+        transition:
+            color .22s ease,
+            fill .22s ease,
+            transform .22s ease !important;
+    }
+
+    /* Arrow hover */
+    [data-testid="stExpander"] details > summary:hover svg,
+    [data-testid="stExpander"] details > summary:hover
+    [data-testid="stIconMaterial"] {
+        color: #67C5B5 !important;
+        fill: #67C5B5 !important;
+    }
+
+    /* Expanded container */
+    [data-testid="stExpander"]:has(details[open]) {
+        border-color: #3B827F !important;
+        box-shadow: 0 5px 20px rgba(0,0,0,.17) !important;
+    }
+
+    /* Expanded header */
+    [data-testid="stExpander"]:has(details[open])
+    details > summary {
+        background: #203747 !important;
+        border-bottom: 1px solid #345568 !important;
+        border-radius: 11px 11px 0 0 !important;
+    }
+
+    /* Expanded content */
+    [data-testid="stExpander"] details > div {
+        background: #182636 !important;
+        padding: 16px 17px !important;
+    }
+
+    /* Container hover */
+    [data-testid="stExpander"]:hover {
+        border-color: #4D8F91 !important;
+        box-shadow: 0 5px 18px rgba(0,0,0,.15) !important;
+    }
+
+    /* Keyboard accessibility */
+    [data-testid="stExpander"] details > summary:focus-visible {
+        outline: 2px solid #67C5B5 !important;
+        outline-offset: -3px !important;
+    }
+
+    /* =====================================================
+       ALERTS AND SEPARATORS
+    ===================================================== */
+
     [data-testid="stAlert"] {
         background: #1B2A3A !important;
         color: #E8EEF5 !important;
         border: 1px solid #3A5066 !important;
+        border-radius: 12px !important;
     }
-    hr { border-color: #34485D !important; }
 
-    /* Dataframes and tables */
-    [data-testid="stDataFrame"], [data-testid="stTable"] {
+    [data-testid="stAlert"] * {
+        color: #E8EEF5 !important;
+        -webkit-text-fill-color: #E8EEF5 !important;
+    }
+
+    hr {
+        border-color: #34485D !important;
+    }
+
+    /* =====================================================
+       DATAFRAMES AND TABLES
+    ===================================================== */
+
+    [data-testid="stDataFrame"],
+    [data-testid="stTable"] {
         background: #182636 !important;
         color: #E8EEF5 !important;
         border: 1px solid #34485D !important;
     }
+
     [data-testid="stDataFrame"] [role="grid"],
     [data-testid="stDataFrame"] [role="gridcell"],
     [data-testid="stDataFrame"] [role="columnheader"],
@@ -284,180 +478,30 @@ if dark_mode:
         color: #E8EEF5 !important;
         border-color: #34485D !important;
     }
+
     [data-testid="stDataFrame"] [role="columnheader"] {
         background-color: #24384B !important;
         color: #F2F6FA !important;
     }
+
     [data-testid="stDataFrame"] [role="gridcell"]:hover {
         background-color: #29445B !important;
     }
 
-    /* Code blocks and inline code */
-    .stApp code, .stApp pre {
+    /* =====================================================
+       CODE BLOCKS
+    ===================================================== */
+
+    .stApp code,
+    .stApp pre {
         background: #182636 !important;
         color: #E5EDF5 !important;
         border-color: #34485D !important;
     }
+
     </style>
     """, unsafe_allow_html=True)
-else:
-    st.markdown("""
-    <style>
-    /* Keep the light theme readable when Streamlit's inherited theme changes. */
-    .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"],
-    [data-testid="stMainBlockContainer"] {
-        background: #f5f7fb !important;
-        color: #172b3a !important;
-    }
-    .stApp p, .stApp li, .stApp label,
-    .stApp [data-testid="stMarkdownContainer"],
-    .stApp [data-testid="stCaptionContainer"] {
-        color: #26384a;
-    }
-    .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
-    .section-title {
-        color: #193647 !important;
-    }
-    .hero h1, .hero h1 span, .hero h1 a, .hero p {
-        color: #ffffff !important;
-    }
-    .subtle, [data-testid="stCaptionContainer"] {
-        color: #526174 !important;
-    }
 
-    /* Native cards and tabs */
-    .kpi, div[data-testid="stMetric"] {
-        background: #ffffff !important;
-        border: 1px solid #d5dde7 !important;
-        box-shadow: 0 5px 18px rgba(23,43,77,.07) !important;
-    }
-    .kpi-label, div[data-testid="stMetric"] label,
-    div[data-testid="stMetric"] [data-testid="stMetricLabel"] {
-        color: #526174 !important;
-    }
-    .kpi-value, div[data-testid="stMetric"] [data-testid="stMetricValue"] {
-        color: #142c3c !important;
-    }
-    .kpi-note { color: #5f6d7d !important; }
-    .stTabs [data-baseweb="tab"] {
-        background: #ffffff !important;
-        color: #26384a !important;
-        border: 1px solid #c8d2de !important;
-        border-bottom: 0 !important;
-    }
-    .stTabs [data-baseweb="tab"]:hover,
-    .stTabs [aria-selected="true"] {
-        background: #e8f2f1 !important;
-        color: #123f4a !important;
-    }
-    .stTabs [data-baseweb="tab-highlight"] { background: #168b83 !important; }
-
-    /* Inputs and menu popovers */
-    [data-baseweb="input"] > div,
-    [data-baseweb="textarea"] > div,
-    [data-baseweb="select"] > div,
-    [data-testid="stDateInput"] input,
-    [data-testid="stTimeInput"] input {
-        background: #ffffff !important;
-        color: #172b3a !important;
-        border-color: #9aaabd !important;
-    }
-    [data-baseweb="input"] input,
-    [data-baseweb="textarea"] textarea,
-    [data-baseweb="select"] input {
-        color: #172b3a !important;
-        -webkit-text-fill-color: #172b3a !important;
-        caret-color: #123f4a !important;
-    }
-    [data-baseweb="input"] input::placeholder,
-    [data-baseweb="textarea"] textarea::placeholder {
-        color: #667588 !important;
-        -webkit-text-fill-color: #667588 !important;
-    }
-    [data-baseweb="select"] svg { fill: #405366 !important; }
-    [data-baseweb="popover"], [data-baseweb="menu"],
-    [role="listbox"], [role="option"] {
-        background: #ffffff !important;
-        color: #172b3a !important;
-    }
-    [role="option"]:hover, [aria-selected="true"][role="option"] {
-        background: #e8f2f1 !important;
-        color: #123f4a !important;
-    }
-
-    /* Buttons, feedback, and expandable content */
-    .stButton > button, .stDownloadButton > button,
-    [data-testid="stFormSubmitButton"] > button {
-        background: #166b68 !important;
-        color: #ffffff !important;
-        border: 1px solid #0f5653 !important;
-    }
-    .stButton > button *,
-    .stDownloadButton > button *,
-    [data-testid="stFormSubmitButton"] > button * {
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-    }
-    .stButton > button:hover, .stDownloadButton > button:hover,
-    [data-testid="stFormSubmitButton"] > button:hover {
-        background: #0f5653 !important;
-        color: #ffffff !important;
-        border-color: #0b4542 !important;
-    }
-    [data-testid="stCheckbox"] label, [data-testid="stRadio"] label,
-    [data-testid="stToggle"] label, [data-testid="stSlider"] label {
-        color: #26384a !important;
-    }
-    [data-testid="stSlider"] [role="slider"] {
-        background: #168b83 !important;
-        border-color: #168b83 !important;
-    }
-    [data-testid="stExpander"] {
-        background: #ffffff !important;
-        border: 1px solid #c8d2de !important;
-        border-radius: 10px !important;
-    }
-    [data-testid="stExpander"] summary,
-    [data-testid="stExpander"] summary span {
-        color: #26384a !important;
-    }
-    [data-testid="stAlert"] {
-        background: #f8fbfd !important;
-        color: #26384a !important;
-        border: 1px solid #b8c7d6 !important;
-    }
-    hr { border-color: #c8d2de !important; }
-
-    /* Tables need explicit foreground and header colors in light mode. */
-    [data-testid="stDataFrame"], [data-testid="stTable"] {
-        background: #ffffff !important;
-        color: #172b3a !important;
-        border: 1px solid #c8d2de !important;
-    }
-    [data-testid="stDataFrame"] [role="grid"],
-    [data-testid="stDataFrame"] [role="gridcell"],
-    [data-testid="stDataFrame"] [role="columnheader"],
-    [data-testid="stTable"] table,
-    [data-testid="stTable"] th,
-    [data-testid="stTable"] td {
-        background-color: #ffffff !important;
-        color: #172b3a !important;
-        border-color: #d5dde7 !important;
-    }
-    [data-testid="stDataFrame"] [role="columnheader"] {
-        background-color: #e8eef4 !important;
-        color: #193647 !important;
-    }
-    [data-testid="stDataFrame"] [role="gridcell"]:hover {
-        background-color: #edf6f5 !important;
-    }
-    .stApp code, .stApp pre {
-        background: #eef2f6 !important;
-        color: #26384a !important;
-        border-color: #c8d2de !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
 
 # ----------------------------- overview -----------------------------
 if page == "Overview":
@@ -781,24 +825,54 @@ elif page == "Prediction laboratory":
             cols=st.columns(3)
             for i,feat in enumerate(FEATURES):
                 with cols[i%3]:
-                    vals[feat]=st.number_input(feat.replace("_"," ").title(),
-                        value=float(historical_row[feat]),format="%.6f",key=f"hist_{feat}")
+                    if feat == "hydrological_year":
+                        vals[feat]=st.number_input(feat.replace("_"," ").title(),
+                            value=int(historical_row[feat]),format="%d",step=1,key=f"hist_{feat}")
+                    else:
+                        vals[feat]=st.number_input(feat.replace("_"," ").title(),
+                            value=float(historical_row[feat]),format="%.6f",key=f"hist_{feat}")
         lat=float(selected[0]); lon=float(selected[1])
     else:
         st.markdown("**1 · Enter geographic context and model features**")
+        # Display retrospective classification warnings for manual entry
+        st.info("""
+        **Important classification scope notes:**
+        - For years **1991–2024**: Predictions are within the model's validated scope.
+        - For years **outside 1991–2024**: Predictions are extrapolation.
+        """)
         a,b=st.columns(2)
         with a: lat=st.number_input("Latitude (°N)",min_value=-90.0,max_value=90.0,value=float(df[LAT_COL].median()),format="%.4f")
         with b: lon=st.number_input("Longitude (°E)",min_value=-180.0,max_value=180.0,value=float(df[LON_COL].median()),format="%.4f")
         st.caption("Latitude and longitude are for map context only. They are not passed to the classifier.")
-        med=df[FEATURES].median(numeric_only=True)
-        with st.expander("Model feature values (17 predictors)",expanded=True):
-            vals={}
-            cols=st.columns(3)
-            for i,feat in enumerate(FEATURES):
-                with cols[i%3]:
-                    lo=float(df[feat].quantile(.001)); hi=float(df[feat].quantile(.999))
-                    vals[feat]=st.number_input(feat.replace("_"," ").title(),
-                        value=float(med[feat]),format="%.6f",key=f"manual_{feat}")
+
+        med = df[FEATURES].median(numeric_only=True)
+        with st.expander("Model feature values (17 predictors)", expanded=True):
+            vals = {}
+            cols = st.columns(3)
+
+            for i, feat in enumerate(FEATURES):
+                with cols[i % 3]:
+
+                    # Hydrological year must be an integer, not a float.
+                    if feat == "hydrological_year":
+                        vals[feat] = st.number_input(
+                            "Hydrological Year",
+                            min_value=int(df[feat].min()),
+                            max_value=int(df[feat].max()),
+                            value=int(med[feat]),
+                            step=1,
+                            format="%d",
+                            key=f"manual_{feat}"
+                        )
+
+                    # All remaining predictors accept decimal values.
+                    else:
+                        vals[feat] = st.number_input(
+                            feat.replace("_", " ").title(),
+                            value=float(med[feat]),
+                            format="%.6f",
+                            key=f"manual_{feat}"
+                        )
         historical_row=None
     st.markdown("**2 · Classify the supplied conditions**")
     if st.button("Run mass-change classification",type="primary",use_container_width=True):
