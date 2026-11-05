@@ -1,3 +1,0 @@
-# Data audit
-Target: C3S/WGMS gridded annual mass change, 0.5 deg, HY April-March, label Y = Apr(Y-1)..Mar(Y). ERA5-Land monthly (moda) CSV 9.5 GB, 47,159,565 rows, source grid 0.1 deg; conservative area weighting; 65,712 overlap pairs; coverage min 0.7007 mean 0.9888; monthly table 284,376 rows (408 months x 697). Annual table 23,698 rows, all 12 months present. ECMWF issue: Sep 2022-Feb 2024, accumulated variables; recovery table replaced 12 variables (828,072 regional source rows each; 0 unreplaced). snowc/sde/sd kept from original. sde and sd correlate r=1.00; ro-tp 0.98.
-Open: units/semantics certification of all 15 variables; snowc scale 0-100.
