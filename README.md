@@ -4,15 +4,11 @@ Research code and data-processing notebooks for preparing a Hindu Kush Himalaya
 (HKH) glacier mass-change dataset, integrating ERA5-Land climate predictors,
 exploring the data, and evaluating classification models under both spatially
 grouped and chronological validation. The repository also contains a local
-Streamlit dashboard and the paper source, compiled PDF, and figure assets.
+Streamlit dashboard and the scripts used to generate the paper figures.
 
-The research paper source is
-[`research_paper/final_research_paper.tex`](research_paper/final_research_paper.tex),
-and the compiled PDF is
-[`research_paper/research_paper.pdf`](research_paper/research_paper.pdf). The
-paper uses figures in `research_paper/figures/`, a standalone TikZ panel in
-`research_paper/fig_cvflow.tex`, and appendix captures in
-`research_paper/code_screenshots/` and `research_paper/dashboard_screenshots/`.
+The research paper is in
+[`research_paper/final_research_paper.tex`](research_paper/final_research_paper.tex).
+The paper uses figures generated into `research_paper/figures/`.
 
 **GitHub repository:** [Code-With-Samuel/glacier_research](https://github.com/Code-With-Samuel/glacier_research)
 
@@ -30,6 +26,7 @@ glacier_research/
 ├── glacier_eda_hkh.ipynb
 ├── supervised_learning_for_classification.ipynb
 ├── glacier_mass_change_integrated_hkh_ml.ipynb
+├── time_series_mass_balance_forecasting.ipynb
 ├── datasets/                                   # raw inputs (gitignored)
 │   ├── copernicus_wgms_gridded_mass_change/
 │   ├── era5_land_nepal_climate_1990-2026/
@@ -58,18 +55,20 @@ glacier_research/
 └── research_paper/
     ├── final_research_paper.tex
     ├── final_research_paper.bib
-    ├── research_paper.pdf
+    ├── final_research_paper.pdf
     ├── references.bib
-    ├── fig_cvflow.tex
     ├── figures/
     ├── paper_figures/
-    ├── code_screenshots/
-    └── dashboard_screenshots/
+    ├── research_audit/
+    └── scripts/
+        ├── make_figs.py
+        ├── make_diag.py
+        └── make_results_figs.py
 ```
 
 Generated data directories and a local `.venv/` are not shown in the tree. The
-single root `.venv` is shared by the notebooks and dashboard. No separate
-environment or data copy is used inside `hkh_glacier_application/`.
+single root `.venv` is shared by the notebooks, figure scripts, and dashboard.
+No separate environment or data copy is used inside `hkh_glacier_application/`.
 
 ## Setup on Windows
 
@@ -95,7 +94,7 @@ If PowerShell prevents environment activation, either adjust the user execution
 policy according to your organization's guidance or invoke the environment's
 Python directly as `.\.venv\Scripts\python.exe`.
 
-Use this one environment for every notebook below. Open the
+Use this one environment for every notebook and script below. Open the
 repository root as the VS Code workspace, select the
 `Python (glacier-research)` kernel for each notebook, and run cells from top to
 bottom. If you prefer JupyterLab, install it into the same environment and start
@@ -108,6 +107,12 @@ jupyter lab
 
 The notebook working directory must be the repository root because the setup
 cells and some outputs use project-relative paths.
+
+## Project workflow
+
+The end-to-end project workflow is shown below:
+
+![Project workflow diagram](reference_image/workflow.png)
 
 ## How to run the notebooks
 
@@ -272,26 +277,61 @@ the data, not transfer to unseen locations. Some test-period classes may have
 too few observations for defined ROC curves; the notebook reports these as
 undefined rather than substituting a score.
 
-## Paper figures and screenshots
+## How to run the paper figure scripts
 
-The paper assets are committed under `research_paper/`. Main manuscript figures
-are in `research_paper/figures/`, with a parallel copy in
-`research_paper/paper_figures/`. `figures/` also contains
-`correlation_matrix.csv` and the two PNG figures used by the manuscript. The
-appendices use `research_paper/code_screenshots/` for code excerpts and
-`research_paper/dashboard_screenshots/` for Streamlit captures.
+Run the scripts from the repository root after preparing the integrated CSV.
+Activate the shared environment first if it is not already active:
 
-`research_paper/fig_cvflow.tex` is a standalone TikZ panel included by the
-manuscript for the spatial cross-validation flow diagram. The repository no
-longer includes the figure-generation scripts; if the analysis changes,
-regenerate the affected figures from the notebooks and replace the corresponding
-files in `research_paper/figures/`.
+```powershell
+.\.venv\Scripts\Activate.ps1
+python research_paper\scripts\make_figs.py
+python research_paper\scripts\make_diag.py
+```
+
+`make_figs.py` generates the main paper figures and `correlation_matrix.csv` in
+`research_paper/figures/`. Fig. 2's heatmap annotates each square with its
+signed Pearson correlation coefficient, rounded to two decimals. The existing
+color scale and `Pearson r` color bar indicate sign and magnitude; larger
+absolute coefficients indicate stronger linear associations.
+
+`make_diag.py` generates the ERA5-Land discontinuity diagnostic.
+
+`make_results_figs.py` generates the model-result figures. Run
+`supervised_learning_for_classification.ipynb` first with the notebook working
+directory set to the repository root; it writes the candidate and fold tables
+to `spatial_cv_outputs/`. The figure script selects each model's best
+configuration using the notebook's macro-F1, balanced-accuracy, and accuracy
+ranking, then uses its five validation-fold macro-F1 values. Alternatively,
+provide `research_paper/figures/fold_f1.json` with this shape:
+
+```json
+{
+  "Gradient Boosting": [0.0, 0.0, 0.0, 0.0, 0.0],
+  "Random Forest": [0.0, 0.0, 0.0, 0.0, 0.0],
+  "SVM (RBF)": [0.0, 0.0, 0.0, 0.0, 0.0],
+  "Logistic Regression": [0.0, 0.0, 0.0, 0.0, 0.0]
+}
+```
+
+Replace the example zeroes with actual per-fold results; never use the
+placeholder values. The remaining aggregate metrics and confusion-matrix counts
+in `make_results_figs.py` are reported-result constants; update them from the
+experiment outputs if you change or rerun the analysis. Then run:
+
+```powershell
+python research_paper\scripts\make_results_figs.py
+```
+
+The descriptive figure scripts use GeoPandas and download the Natural Earth land
+boundary dataset through `geodatasets` on first use, so internet access may be
+required.
 
 ## How to run the dashboard
 
 `hkh_glacier_application/` contains a local Streamlit research dashboard for
-exploring the integrated table, mapping grid records, and running the selected
-Gradient Boosting classifier. It reads the shared project artifacts directly
+exploring the integrated table, mapping grid records, running the selected
+Gradient Boosting classifier, and forecasting numeric future mass balance with
+an ExtraTrees regression panel model. It reads the shared project artifacts directly
 and keeps no copy under the application folder:
 
 - `processed_data/hkh_glacier_mass_change_era5land_hydrological_year_eda.csv`
@@ -319,6 +359,20 @@ Open the local URL printed in the terminal, normally
 virtual environment; the root `.venv` is used for everything. See
 [`hkh_glacier_application/README.md`](hkh_glacier_application/README.md) for
 dashboard details and shared interpretation caveats.
+
+The future mass-change classification workflow selects a grid location and one
+future hydrological year, then accepts glacier area and all 15 ERA5-Land
+predictors. The year is used only as metadata and is excluded from the
+supervised ExtraTrees classifier. The separate
+`future_mass_change_classification.ipynb` notebook trains the artifact
+with chronological holdout evaluation.
+
+The current classification experiment excludes hydrological years 2022–2024
+and uses 2018–2021 as its chronological test years.
+
+The separate `time_series_mass_balance_forecasting.ipynb` notebook trains the
+forecasting artifact with chronological holdout evaluation. It uses
+`hydrological_year` only for sorting and splitting, never as a model predictor.
 
 ## Data requirements
 
